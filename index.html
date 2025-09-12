@@ -3,47 +3,90 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Form tổng hợp link theo chương</title>
+  <title>LinkCollector — Tổng hợp link theo chương</title>
+  <meta name="description" content="Form tổng hợp link theo 4 chương, hỗ trợ dán nhiều link, tự tách URL, xem trước và xuất .txt. Có Dark/Light mode và thông báo (toast). Không auto-save."/>
+  <meta property="og:title" content="LinkCollector — Tổng hợp link theo chương"/>
+  <meta property="og:description" content="Dán nhiều link, tự tách URL, xem trước & xuất .txt. Dark/Light mode. Không auto-save."/>
   <style>
     :root{
-      --bg:#0a0f1a; --card:#152133; --input:#0b1220; --border:#2a3a4d; --text:#e6edf3; --muted:#93a4b6; --accent:#3b82f6; --danger:#ef4444; --shadow:0 8px 22px rgba(0,0,0,.28);
+      /* LIGHT THEME */
+      --bg:#f6f7fb; --text:#0b1220; --muted:#5b6472;
+      --card:#ffffff; --input:#f3f5f9; --border:#e3e6ee;
+      --accent:#2563eb; --danger:#dc2626; --shadow:0 10px 24px rgba(11,18,32,.08);
     }
+    :root[data-theme="dark"]{
+      /* DARK THEME */
+      --bg:#0a0f1a; --text:#e6edf3; --muted:#93a4b6;
+      --card:#152133; --input:#0b1220; --border:#2a3a4d;
+      --accent:#3b82f6; --danger:#ef4444; --shadow:0 10px 24px rgba(0,0,0,.28);
+    }
+
     *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
     body{font-family:Segoe UI, Roboto, system-ui, sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
-    .container{max-width:1200px;margin:32px auto;padding:0 16px}
-    h1{text-align:center;font-size:28px;margin-bottom:10px}
-    .sub{text-align:center;color:var(--muted);margin-bottom:24px}
+
+    .container{max-width:1200px;margin:28px auto;padding:0 16px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7c3aed)}
+    h1{font-size:22px}
+    .sub{color:var(--muted);margin-bottom:16px}
+
+    .toolbar{display:flex;align-items:center;gap:10px}
+    .theme-toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--input);padding:8px 10px;border-radius:10px;cursor:pointer}
 
     .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px}
-    .card h2{font-size:18px;margin-bottom:12px}
+    .card h2{font-size:18px;margin-bottom:10px}
     .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
 
     .row{margin-bottom:12px}
-    input[type="text"], input[type="url"], textarea{width:100%;background:var(--input);color:var(--text);border:1px solid var(--border);border-radius:16px;padding:12px;outline:none}
+    input[type="text"], input[type="url"], textarea{
+      width:100%;background:var(--input);color:var(--text);
+      border:1px solid var(--border);border-radius:14px;padding:12px;outline:none
+    }
     textarea{min-height:84px;resize:vertical}
-    input::placeholder, textarea::placeholder{color:#78879a}
-    input:focus, textarea:focus{border-color:#3c5066}
+    input::placeholder, textarea::placeholder{color:var(--muted)}
+    input:focus, textarea:focus{border-color:var(--accent)}
 
     .list{margin-top:6px}
     .item{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .remove{min-width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:transparent;border:1px solid var(--border);color:#e27b7b;cursor:pointer}
-    .remove:hover{border-color:#9a3a3a;color:#ff9090}
+    .remove{min-width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:transparent;border:1px solid var(--border);color:var(--danger);cursor:pointer}
 
     .btn{height:38px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--input);color:var(--text);cursor:pointer}
-    .btn:hover{border-color:#3c5066}
-    .btn.danger{background:#361a1a}
+    .btn:hover{border-color:var(--accent)}
+    .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .btn.danger{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+    :root[data-theme="dark"] .btn.danger{background:#361a1a;border-color:#732626;color:#ff9c9c}
     .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
 
     .preview{background:var(--input);border:1px dashed var(--border);border-radius:16px;padding:12px;margin-top:10px;white-space:pre-wrap}
-    .footer{text-align:center;color:var(--muted);margin-top:20px}
+    footer{text-align:center;color:var(--muted);margin:18px 0}
     .options{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:14px;margin-top:8px}
     .options input{width:auto}
+
+    /* Toast */
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+    .toast{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);color:var(--text);padding:10px 12px;border-radius:12px;min-width:220px}
+
+    /* Spinner */
+    .spinner{width:16px;height:16px;border-radius:999px;border:2px solid var(--border);border-top-color:var(--accent);animation:spin 1s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Form tổng hợp link theo chương</h1>
-    <div class="sub">Mỗi chương có thể thêm nhiều link. Xuất nhanh thành .txt để tổng hợp.</div>
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>LinkCollector</h1>
+          <div class="sub">Dán nhiều link, tự tách URL, xem trước & xuất </div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="theme-toggle" id="themeBtn" aria-label="Đổi giao diện">🌙 <span id="themeLabel">Dark</span></button>
+      </div>
+    </header>
 
     <div class="card">
       <h2>Thiết lập chung</h2>
@@ -98,41 +141,61 @@
       <h2>Kết quả</h2>
       <div class="actions">
         <button class="btn" onclick="generatePreview()">Xem trước</button>
-        <button class="btn" onclick="downloadTxt()">Xuất .txt</button>
+        <button class="btn primary" onclick="downloadTxt()">Xuất .txt</button>
         <button class="btn" onclick="copyToClipboard()">Copy nội dung</button>
         <button class="btn danger" onclick="clearAll()">Xoá tất cả</button>
       </div>
       <div id="preview" class="preview"></div>
     </div>
 
-    <p class="footer">Publish by ĐÔNG</p>
+    <footer>© 2025 LinkCollector • Publish by ĐÔNG</footer>
   </div>
 
+  <!-- Toast container -->
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
   <script>
+    // ===== THEME TOGGLE (no auto-save) =====
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('themeBtn');
+    const themeLabel = document.getElementById('themeLabel');
+    let dark = true; // default dark
+    function applyTheme(){ root.setAttribute('data-theme', dark? 'dark':'light'); themeLabel.textContent = dark ? 'Dark' : 'Light'; themeBtn.firstChild.textContent = dark ? '🌙' : '☀️'; }
+    themeBtn.addEventListener('click', ()=>{ dark = !dark; applyTheme(); });
+    applyTheme();
+
+    // ===== TOAST =====
+    function toast(msg){
+      const box = document.createElement('div'); box.className='toast'; box.textContent=msg;
+      const wrap=document.getElementById('toastWrap'); wrap.appendChild(box);
+      setTimeout(()=>{ box.style.opacity='0'; box.style.transition='opacity .4s'; }, 2200);
+      setTimeout(()=> box.remove(), 2600);
+    }
+
+    // ===== CORE =====
     function nowStamp(){const d=new Date();const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`}
 
-    function createRow(){const wrap=document.createElement('div');wrap.className='item';wrap.innerHTML=`<input type="url" placeholder="Dán link hoặc đoạn có chứa link…" inputmode="url"><button class="remove">✕</button>`;wrap.querySelector('.remove').onclick=()=>wrap.remove();return wrap}
+    function createRow(){const wrap=document.createElement('div');wrap.className='item';wrap.innerHTML=`<input type="url" placeholder="Dán link hoặc đoạn có chứa link…" inputmode="url"><button class="remove" title="Xoá">✕</button>`;wrap.querySelector('.remove').onclick=()=>wrap.remove();return wrap}
     function addLink(ch){document.getElementById(`list-${ch}`).appendChild(createRow())}
 
-    // 🔎 Bóc tách URL từ văn bản: hỗ trợ http/https và www.
+    // Bóc tách URL: http/https, www., domain trần (example.com/path)
     function extractLinks(text){
       if(!text) return [];
       const urls=[];
-      // 1) http/https
-      const r1=/(https?:\/\/[^\s"'<>]+)\/??/gi;
-      let m; while((m=r1.exec(text))!==null){urls.push(m[1].replace(/[),.;]+$/,''))}
-      // 2) www. không có scheme -> tự thêm https://
-      const r2=/(^|\s)(www\.[^\s"'<>]+)/gi;
-      let n; while((n=r2.exec(text))!==null){let u=n[2].replace(/[),.;]+$/,''); if(!/^https?:\/\//i.test(u)) u='https://'+u; urls.push(u)}
+      // http/https
+      const r1=/(https?:\/\/[^\s"'<>]+)/gi; let m; while((m=r1.exec(text))!==null){urls.push(m[1].replace(/[),.;]+$/,''))}
+      // www.
+      const r2=/(^|\s)(www\.[^\s"'<>]+)/gi; let n; while((n=r2.exec(text))!==null){let u=n[2].replace(/[),.;]+$/,''); if(!/^https?:\/\//i.test(u)) u='https://'+u; urls.push(u)}
+      // domain trần
+      const r3=/\b([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[a-zA-Z0-9._\-\/?=&%#]*)?)/gi; let k; while((k=r3.exec(text))!==null){let u=k[1].replace(/[),.;]+$/,''); if(!/^https?:\/\//i.test(u)) u='https://'+u; urls.push(u)}
       return urls;
     }
 
     function bulkPaste(ch){
       const text=prompt('Dán danh sách link hoặc đoạn văn có chứa link:');
-      if(!text) return;
-      const arr=extractLinks(text);
+      if(!text) return; const arr=extractLinks(text);
       arr.forEach(v=>{const row=createRow();row.querySelector('input').value=v;document.getElementById(`list-${ch}`).appendChild(row)});
-      if(!arr.length) alert('Không phát hiện URL hợp lệ trong nội dung đã dán.');
+      toast(arr.length? `Đã thêm ${arr.length} link` : 'Không phát hiện URL hợp lệ');
     }
 
     function collectRaw(ch){return[...document.querySelectorAll(`#list-${ch} input[type=url]`)].map(i=>i.value).filter(Boolean)}
@@ -140,13 +203,9 @@
     function getLinks(ch){
       const autosplit=document.getElementById('autosplit').checked;
       let items = collectRaw(ch).map(s=>s.trim()).filter(Boolean);
-      if(autosplit){ // bóc link thật từ từng ô (kể cả có số/ký tự đi kèm)
-        items = items.flatMap(v=>extractLinks(v));
-      }
-      // bỏ trùng nếu bật
+      if(autosplit){ items = items.flatMap(v=>extractLinks(v)); }
       if(document.getElementById('dedupe').checked){
-        const seen=new Set();
-        items = items.filter(v=>{const k=v.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true;});
+        const seen=new Set(); items = items.filter(v=>{const k=v.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true;});
       }
       return items;
     }
@@ -159,25 +218,26 @@
       return header+(content?content:'— (Chưa có link)');
     }
 
-    function generatePreview(){document.getElementById('preview').textContent=generateText()}
+    function generatePreview(){ document.getElementById('preview').textContent = generateText(); toast('Đã cập nhật xem trước'); }
 
     function downloadTxt(){
       const blob=new Blob([generateText()],{type:'text/plain;charset=utf-8'});
       const a=document.createElement('a');
       const fname=(document.getElementById('filename').value.trim()||`tong_hop_link_${nowStamp()}`)+'.txt';
       a.href=URL.createObjectURL(blob); a.download=fname; a.click();
-      URL.revokeObjectURL(a.href);
+      URL.revokeObjectURL(a.href); toast('Đã xuất file .txt');
     }
 
     function copyToClipboard(){
-      navigator.clipboard.writeText(generateText()).then(()=>alert('Đã copy nội dung')).catch(()=>{
-        const ta=document.createElement('textarea'); ta.value=generateText(); document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('Đã copy nội dung.')
+      navigator.clipboard.writeText(generateText()).then(()=>toast('Đã copy nội dung')).catch(()=>{
+        const ta=document.createElement('textarea'); ta.value=generateText(); document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Đã copy nội dung');
       });
     }
 
-    function clearAll(){if(!confirm('Xoá tất cả link?'))return;[1,2,3,4].forEach(ch=>document.getElementById(`list-${ch}`).innerHTML='');document.getElementById('preview').textContent=''}
+    function clearAll(){ if(!confirm('Xoá tất cả link?')) return; [1,2,3,4].forEach(ch=>document.getElementById(`list-${ch}`).innerHTML=''); document.getElementById('preview').textContent=''; toast('Đã xoá toàn bộ'); }
 
-    window.addEventListener('DOMContentLoaded',()=>[1,2,3,4].forEach(addLink))
+    // Seed: 1 ô cho mỗi chương (không auto-save)
+    window.addEventListener('DOMContentLoaded',()=>[1,2,3,4].forEach(addLink));
   </script>
 </body>
 </html>
