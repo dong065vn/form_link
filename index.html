@@ -6,17 +6,7 @@
   <title>Form tổng hợp link theo chương</title>
   <style>
     :root{
-      --bg:#0a0f1a;
-      --card:#152133;
-      --input:#0b1220;
-      --border:#2a3a4d;
-      --text:#e6edf3;
-      --muted:#93a4b6;
-      --accent:#3b82f6;
-      --danger:#ef4444;
-      --shadow:0 8px 22px rgba(0,0,0,.28);
-      --radius:12px;
-      --pad:12px;
+      --bg:#0a0f1a; --card:#152133; --input:#0b1220; --border:#2a3a4d; --text:#e6edf3; --muted:#93a4b6; --accent:#3b82f6; --danger:#ef4444; --shadow:0 8px 22px rgba(0,0,0,.28);
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Segoe UI, Roboto, system-ui, sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
@@ -29,15 +19,7 @@
     .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
 
     .row{margin-bottom:12px}
-    input[type="text"], input[type="url"], textarea{
-      width:100%;
-      background:var(--input);
-      color:var(--text);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:var(--pad);
-      outline:none;
-    }
+    input[type="text"], input[type="url"], textarea{width:100%;background:var(--input);color:var(--text);border:1px solid var(--border);border-radius:16px;padding:12px;outline:none}
     textarea{min-height:84px;resize:vertical}
     input::placeholder, textarea::placeholder{color:#78879a}
     input:focus, textarea:focus{border-color:#3c5066}
@@ -54,6 +36,8 @@
 
     .preview{background:var(--input);border:1px dashed var(--border);border-radius:16px;padding:12px;margin-top:10px;white-space:pre-wrap}
     .footer{text-align:center;color:var(--muted);margin-top:20px}
+    .options{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:14px;margin-top:8px}
+    .options input{width:auto}
   </style>
 </head>
 <body>
@@ -66,6 +50,10 @@
       <div class="row"><input id="filename" type="text" placeholder="Tên file (vd: tong_hop_link)"></div>
       <div class="row"><input id="docTitle" type="text" placeholder="Tiêu đề tài liệu"></div>
       <div class="row"><textarea id="docNote" placeholder="Ghi chú (tuỳ chọn)"></textarea></div>
+      <div class="options">
+        <label><input type="checkbox" id="dedupe" checked> Bỏ trùng link</label>
+        <label><input type="checkbox" id="autosplit" checked> Tự tách link khi xuất/preview</label>
+      </div>
     </div>
 
     <div class="grid" style="margin-top:18px">
@@ -117,32 +105,60 @@
       <div id="preview" class="preview"></div>
     </div>
 
-    <p class="footer">Publish by ĐÔNG</p>
+    <p class="footer">Đồng bộ style. Có tuỳ chọn bỏ trùng & tự tách link cho Preview/Xuất.</p>
   </div>
 
   <script>
     function nowStamp(){const d=new Date();const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`}
     function createRow(){const wrap=document.createElement('div');wrap.className='item';wrap.innerHTML=`<input type="url" placeholder="https://…" inputmode="url"><button class="remove">✕</button>`;wrap.querySelector('.remove').onclick=()=>wrap.remove();return wrap}
     function addLink(ch){document.getElementById(`list-${ch}`).appendChild(createRow())}
-    function bulkPaste(ch){
-    const lines = prompt('Dán danh sách link (mỗi dòng 1 link):');
-    if (!lines) return;
+    function bulkPaste(ch){const lines=prompt('Dán danh sách link (mỗi dòng 1 link):');if(!lines)return;const arr=splitLinks(lines);arr.forEach(v=>{const row=createRow();row.querySelector('input').value=v;document.getElementById(`list-${ch}`).appendChild(row)})}
 
-    // Tách từng dòng và lọc rỗng
-    const arr = lines.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    // Tách link theo xuống dòng, dấu phẩy, chấm phẩy, khoảng trắng
+    function splitLinks(text){return text.split(/[\n\r,;\t ]+/).map(s=>s.trim()).filter(Boolean)}
 
-    arr.forEach(v => {
-      const row = createRow();
-      row.querySelector('input').value = v;
-      document.getElementById(`list-${ch}`).appendChild(row);
-    });
-  }
-    function getLinks(ch){return[...document.querySelectorAll(`#list-${ch} input`)].map(i=>i.value.trim()).filter(Boolean)}
-    function generateText(){const title=document.getElementById('docTitle').value.trim();const note=document.getElementById('docNote').value.trim();const header=[title?`# ${title}`:'# Tổng hợp link chương 1–4',note?`> ${note}`:'',`Tạo lúc: ${new Date().toLocaleString()}`,''].filter(Boolean).join('\\n');const content=[1,2,3,4].map(ch=>{const links=getLinks(ch);if(!links.length)return null;const items=links.map((l,i)=>`  ${i+1}. ${l}`).join('\\n');return `Chương ${ch}:\\n${items}`}).filter(Boolean).join('\\n\\n');return header+(content?content:'— (Chưa có link)')}
+    function collectRaw(ch){return[...document.querySelectorAll(`#list-${ch} input[type=url]`)].map(i=>i.value).filter(Boolean)}
+
+    function getLinks(ch){
+      const autosplit=document.getElementById('autosplit').checked;
+      let items = collectRaw(ch).map(s=>s.trim()).filter(Boolean);
+      if(autosplit){
+        items = items.flatMap(v=>splitLinks(v));
+      }
+      // Loại bỏ trùng (tuỳ chọn)
+      if(document.getElementById('dedupe').checked){
+        const seen=new Set();
+        items = items.filter(v=>{const k=v.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true;});
+      }
+      return items;
+    }
+
+    function generateText(){
+      const title=document.getElementById('docTitle').value.trim();
+      const note=document.getElementById('docNote').value.trim();
+      const header=[title?`# ${title}`:'# Tổng hợp link chương 1–4', note?`> ${note}`:'', `Tạo lúc: ${new Date().toLocaleString()}`, ''].filter(Boolean).join('\n');
+      const content=[1,2,3,4].map(ch=>{const links=getLinks(ch); if(!links.length) return null; const items=links.map((l,i)=>`  ${i+1}. ${l}`).join('\n'); return `Chương ${ch}:\n${items}`}).filter(Boolean).join('\n\n');
+      return header+(content?content:'— (Chưa có link)');
+    }
+
     function generatePreview(){document.getElementById('preview').textContent=generateText()}
-    function downloadTxt(){const blob=new Blob([generateText()],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');const fname=(document.getElementById('filename').value.trim()||`tong_hop_link_${nowStamp()}`)+'.txt';a.href=URL.createObjectURL(blob);a.download=fname;a.click();URL.revokeObjectURL(a.href)}
-    function copyToClipboard(){navigator.clipboard.writeText(generateText()).then(()=>alert('Đã copy nội dung')).catch(()=>{const ta=document.createElement('textarea');ta.value=generateText();document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('Đã copy nội dung.')})}
+
+    function downloadTxt(){
+      const blob=new Blob([generateText()],{type:'text/plain;charset=utf-8'});
+      const a=document.createElement('a');
+      const fname=(document.getElementById('filename').value.trim()||`tong_hop_link_${nowStamp()}`)+'.txt';
+      a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function copyToClipboard(){
+      navigator.clipboard.writeText(generateText()).then(()=>alert('Đã copy nội dung')).catch(()=>{
+        const ta=document.createElement('textarea'); ta.value=generateText(); document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('Đã copy nội dung.')
+      });
+    }
+
     function clearAll(){if(!confirm('Xoá tất cả link?'))return;[1,2,3,4].forEach(ch=>document.getElementById(`list-${ch}`).innerHTML='');document.getElementById('preview').textContent=''}
+
     window.addEventListener('DOMContentLoaded',()=>[1,2,3,4].forEach(addLink))
   </script>
 </body>
