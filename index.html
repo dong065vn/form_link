@@ -105,6 +105,7 @@
         <div class="actions">
           <button class="btn" onclick="addLink(1)">+ Thêm link</button>
           <button class="btn" onclick="bulkPaste(1)">Dán nhiều link…</button>
+          <button class="btn" onclick="pickFile(1)">Nhập file…</button>
         </div>
         <div id="list-1" class="list"></div>
       </div>
@@ -114,6 +115,7 @@
         <div class="actions">
           <button class="btn" onclick="addLink(2)">+ Thêm link</button>
           <button class="btn" onclick="bulkPaste(2)">Dán nhiều link…</button>
+          <button class="btn" onclick="pickFile(2)">Nhập file…</button>
         </div>
         <div id="list-2" class="list"></div>
       </div>
@@ -123,6 +125,7 @@
         <div class="actions">
           <button class="btn" onclick="addLink(3)">+ Thêm link</button>
           <button class="btn" onclick="bulkPaste(3)">Dán nhiều link…</button>
+          <button class="btn" onclick="pickFile(3)">Nhập file…</button>
         </div>
         <div id="list-3" class="list"></div>
       </div>
@@ -132,6 +135,7 @@
         <div class="actions">
           <button class="btn" onclick="addLink(4)">+ Thêm link</button>
           <button class="btn" onclick="bulkPaste(4)">Dán nhiều link…</button>
+          <button class="btn" onclick="pickFile(4)">Nhập file…</button>
         </div>
         <div id="list-4" class="list"></div>
       </div>
@@ -155,6 +159,7 @@
   <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
 
   <script>
+
     // ===== THEME TOGGLE (no auto-save) =====
     const root = document.documentElement;
     const themeBtn = document.getElementById('themeBtn');
@@ -172,11 +177,94 @@
       setTimeout(()=> box.remove(), 2600);
     }
 
+    // Mở hộp thoại chọn file & đọc nội dung (text)
+function pickFile(ch){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.txt,.csv,text/plain'; // có thể mở rộng nếu cần
+  input.onchange = async (e)=>{
+    const file = e.target.files?.[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      // Tách link từ nội dung file
+      const links = extractLinks(text);
+      if(links.length === 0){
+        toast('Không phát hiện URL trong file');
+        return;
+      }
+      // Thêm vào chương tương ứng
+      const list = document.getElementById(`list-${ch}`);
+      links.forEach((u)=>{
+        const row = createRow(ch);
+        row.querySelector('input').value = u;
+        list.appendChild(row);
+      });
+      toast(`Đã nhập ${links.length} link từ file`);
+    }catch(err){
+      console.error(err);
+      toast('Lỗi đọc file');
+    }
+  };
+  input.click();
+}
     // ===== CORE =====
     function nowStamp(){const d=new Date();const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`}
 
-    function createRow(){const wrap=document.createElement('div');wrap.className='item';wrap.innerHTML=`<input type="url" placeholder="Dán link hoặc đoạn có chứa link…" inputmode="url"><button class="remove" title="Xoá">✕</button>`;wrap.querySelector('.remove').onclick=()=>wrap.remove();return wrap}
-    function addLink(ch){document.getElementById(`list-${ch}`).appendChild(createRow())}
+    function createRow(ch){
+  const wrap=document.createElement('div');
+  wrap.className='item';
+  wrap.innerHTML=`<input type="url" placeholder="Dán link hoặc đoạn có chứa link…" inputmode="url">
+                  <button class="remove" title="Xoá">✕</button>`;
+  const input = wrap.querySelector("input");
+  attachAutoFilter(input, ch);    // 👈 gắn lọc tự động
+  wrap.querySelector('.remove').onclick=()=>wrap.remove();
+  return wrap;
+}
+
+
+    function addLink(ch){
+  document.getElementById(`list-${ch}`).appendChild(createRow(ch));
+}
+
+//filter
+function attachAutoFilter(input, ch){
+  // Xử lý dán: nếu nhiều link → tách ra nhiều ô
+  input.addEventListener('paste', (e)=>{
+    const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+    const links = extractLinks(text);
+    if(links.length > 1){
+      e.preventDefault();
+      input.value = links[0];
+      for(let i=1;i<links.length;i++){
+        const row=createRow(ch);
+        row.querySelector('input').value=links[i];
+        document.getElementById(`list-${ch}`).appendChild(row);
+      }
+    }
+  });
+
+  // Lọc ngay khi gõ (debounced)
+  const run = debounce(()=>{
+    const text = input.value.trim();
+    if(!text) return;
+    const links = extractLinks(text);
+    if(links.length === 0){
+      // chưa nhận ra URL hợp lệ → để user tiếp tục gõ
+      return;
+    }
+    // giữ link đầu tiên
+    input.value = links[0];
+    // link còn lại → tạo thêm ô
+    for(let i=1;i<links.length;i++){
+      const row=createRow(ch);
+      row.querySelector('input').value=links[i];
+      document.getElementById(`list-${ch}`).appendChild(row);
+    }
+  }, 250);
+
+  input.addEventListener('input', run);
+}
 
     // Bóc tách URL: http/https, www., domain trần (example.com/path)
     function extractLinks(text){
@@ -190,13 +278,23 @@
       const r3=/\b([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[a-zA-Z0-9._\-\/?=&%#]*)?)/gi; let k; while((k=r3.exec(text))!==null){let u=k[1].replace(/[),.;]+$/,''); if(!/^https?:\/\//i.test(u)) u='https://'+u; urls.push(u)}
       return urls;
     }
+// gõ mượt
+function debounce(fn, wait=250){
+  let t;
+  return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), wait); };
+}
 
     function bulkPaste(ch){
-      const text=prompt('Dán danh sách link hoặc đoạn văn có chứa link:');
-      if(!text) return; const arr=extractLinks(text);
-      arr.forEach(v=>{const row=createRow();row.querySelector('input').value=v;document.getElementById(`list-${ch}`).appendChild(row)});
-      toast(arr.length? `Đã thêm ${arr.length} link` : 'Không phát hiện URL hợp lệ');
-    }
+  const text=prompt('Dán danh sách link hoặc đoạn văn có chứa link:');
+  if(!text) return;
+  const arr=extractLinks(text);
+  arr.forEach(v=>{
+    const row=createRow(ch);
+    row.querySelector('input').value=v;
+    document.getElementById(`list-${ch}`).appendChild(row);
+  });
+  toast(arr.length? `Đã thêm ${arr.length} link` : 'Không phát hiện URL hợp lệ');
+}
 
     function collectRaw(ch){return[...document.querySelectorAll(`#list-${ch} input[type=url]`)].map(i=>i.value).filter(Boolean)}
 
@@ -238,6 +336,48 @@
 
     // Seed: 1 ô cho mỗi chương (không auto-save)
     window.addEventListener('DOMContentLoaded',()=>[1,2,3,4].forEach(addLink));
+// Kéo-thả file vào card chương
+['1','2','3','4'].forEach(ch=>{
+  const card = document.querySelector(`.card[data-chapter="${ch}"]`);
+  if(!card) return;
+
+  // highlight khi kéo vào
+  ['dragenter','dragover'].forEach(ev=>{
+    card.addEventListener(ev, e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      card.style.outline = '2px dashed var(--accent)';
+      card.style.outlineOffset = '6px';
+    });
+  });
+
+  ['dragleave','drop'].forEach(ev=>{
+    card.addEventListener(ev, e=>{
+      e.preventDefault();
+      card.style.outline = 'none';
+      card.style.outlineOffset = '0';
+    });
+  });
+
+  card.addEventListener('drop', async e=>{
+    const file = e.dataTransfer.files?.[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const links = extractLinks(text);
+      if(links.length === 0){ toast('Không phát hiện URL trong file'); return; }
+      const list = document.getElementById(`list-${ch}`);
+      links.forEach(u=>{
+        const row = createRow(ch);
+        row.querySelector('input').value = u;
+        list.appendChild(row);
+      });
+      toast(`Đã kéo-thả ${links.length} link vào Chương ${ch}`);
+    }catch(err){
+      console.error(err); toast('Lỗi đọc file');
+    }
+  });
+});
   </script>
 </body>
 </html>
