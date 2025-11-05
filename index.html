@@ -103,6 +103,25 @@
       padding: 24px 16px;
       overflow-y: auto;
       position: relative;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 998;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.show {
+      display: block;
+      opacity: 1;
     }
 
     .sidebar-header {
@@ -230,6 +249,49 @@
       justify-content: space-between;
       position: relative;
       z-index: 10;
+    }
+
+    .hamburger-menu {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      padding: 8px;
+      background: var(--yellow);
+      border: 3px solid var(--black);
+      border-radius: 8px;
+      box-shadow: var(--shadow-small);
+      transition: all 0.15s ease;
+    }
+
+    .hamburger-menu:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 var(--black);
+    }
+
+    .hamburger-menu:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--black);
+    }
+
+    .hamburger-line {
+      width: 24px;
+      height: 3px;
+      background: var(--black);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger-menu.active .hamburger-line:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .hamburger-menu.active .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger-menu.active .hamburger-line:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
     }
 
     .header-left {
@@ -734,25 +796,220 @@
        RESPONSIVE
        ============================================ */
 
-    @media (max-width: 768px) {
+    /* Tablet Layout (768px - 1024px) */
+    @media (max-width: 1024px) and (min-width: 769px) {
       .sidebar {
-        display: none;
+        width: 240px;
       }
 
       .task-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
       }
 
+      .header {
+        padding: 14px 24px;
+      }
+
+      .task-board {
+        padding: 24px;
+      }
+
+      .tabs {
+        padding: 0 24px;
+      }
+
+      .logo-text {
+        font-size: 20px;
+      }
+    }
+
+    /* Mobile Layout (< 768px) */
+    @media (max-width: 768px) {
+      /* Sidebar as overlay */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 999;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Show hamburger menu */
+      .hamburger-menu {
+        display: flex;
+      }
+
+      /* Header adjustments */
       .header {
         padding: 12px 16px;
       }
 
+      .logo {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+
+      .logo-text {
+        font-size: 18px;
+      }
+
+      .kawaii-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+      }
+
+      /* Tabs */
+      .tabs {
+        padding: 0 12px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .tab {
+        font-size: 13px;
+        padding: 10px 16px;
+        white-space: nowrap;
+      }
+
+      /* Task Board */
       .task-board {
         padding: 16px;
       }
 
-      .tabs {
-        padding: 0 16px;
+      .board-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .board-title {
+        font-size: 22px;
+      }
+
+      .add-task-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 24px;
+        font-size: 15px;
+      }
+
+      /* Task Grid - Single column on mobile */
+      .task-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      /* Task Cards - Larger touch targets */
+      .task-card {
+        padding: 18px;
+      }
+
+      .task-checkbox {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        font-size: 20px;
+      }
+
+      .task-title {
+        font-size: 15px;
+      }
+
+      .task-btn {
+        flex: 1;
+        padding: 10px 12px;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      /* Modal - Full screen on mobile */
+      .modal {
+        width: 95%;
+        max-width: none;
+        padding: 24px;
+        margin: 16px;
+      }
+
+      .modal-header {
+        font-size: 20px;
+      }
+
+      .modal-input {
+        padding: 14px 16px;
+        font-size: 15px;
+      }
+
+      .modal-btn {
+        flex: 1;
+        padding: 14px 20px;
+        font-size: 15px;
+      }
+
+      /* Footer */
+      .footer {
+        font-size: 11px;
+        padding: 10px 16px;
+      }
+    }
+
+    /* Small Mobile (< 480px) */
+    @media (max-width: 480px) {
+      .header-left {
+        gap: 8px;
+      }
+
+      .logo-text {
+        font-size: 16px;
+      }
+
+      .board-title {
+        font-size: 20px;
+      }
+
+      .task-card {
+        padding: 16px;
+      }
+
+      .task-actions {
+        flex-wrap: wrap;
+      }
+
+      .task-btn {
+        font-size: 11px;
+      }
+
+      .modal {
+        margin: 8px;
+        padding: 20px;
+      }
+    }
+
+    /* Landscape Mobile */
+    @media (max-height: 600px) and (orientation: landscape) {
+      .sidebar {
+        width: 240px;
+      }
+
+      .header {
+        padding: 10px 20px;
+      }
+
+      .task-board {
+        padding: 12px 20px;
+      }
+
+      .modal {
+        max-height: 90vh;
+        overflow-y: auto;
       }
     }
   </style>
@@ -761,6 +1018,9 @@
 
   <!-- Sakura Petals -->
   <div id="sakura-container"></div>
+
+  <!-- Sidebar Overlay for Mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <!-- App Container -->
   <div class="app-container">
@@ -807,6 +1067,11 @@
       <!-- Header -->
       <header class="header">
         <div class="header-left">
+          <div class="hamburger-menu" id="hamburgerMenu">
+            <div class="hamburger-line"></div>
+            <div class="hamburger-line"></div>
+            <div class="hamburger-line"></div>
+          </div>
           <div class="logo">✨</div>
           <div class="logo-text">WIBU TODO</div>
         </div>
@@ -1112,6 +1377,40 @@
       item.addEventListener('click', () => {
         document.querySelectorAll('.project-item').forEach(p => p.classList.remove('active'));
         item.classList.add('active');
+      });
+    });
+
+    // ============================================
+    // MOBILE SIDEBAR TOGGLE
+    // ============================================
+
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    // Toggle sidebar on hamburger click
+    hamburgerMenu.addEventListener('click', () => {
+      sidebar.classList.toggle('mobile-open');
+      sidebarOverlay.classList.toggle('show');
+      hamburgerMenu.classList.toggle('active');
+    });
+
+    // Close sidebar when overlay is clicked
+    sidebarOverlay.addEventListener('click', () => {
+      sidebar.classList.remove('mobile-open');
+      sidebarOverlay.classList.remove('show');
+      hamburgerMenu.classList.remove('active');
+    });
+
+    // Close sidebar when a project is selected on mobile
+    document.querySelectorAll('.project-item').forEach(item => {
+      item.addEventListener('click', () => {
+        // Close mobile menu after selection
+        if (window.innerWidth <= 768) {
+          sidebar.classList.remove('mobile-open');
+          sidebarOverlay.classList.remove('show');
+          hamburgerMenu.classList.remove('active');
+        }
       });
     });
 
