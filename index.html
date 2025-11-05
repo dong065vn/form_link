@@ -1,1629 +1,383 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="page-title">✨ Wibu TODO — Anime Task Manager</title>
-  <meta name="description" id="page-description" content="Kawaii anime-themed TODO app with premium Neobrutalism UI. Yatta! 🎌✨">
-
-  <!-- Mono Variable Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LinkCollector — Tổng hợp link theo chương</title>
+  <meta name="description" content="Form tổng hợp link theo 4 chương, hỗ trợ dán nhiều link, tự tách URL, xem trước và xuất .txt. Có Dark/Light mode và thông báo (toast). Không auto-save."/>
+  <meta property="og:title" content="LinkCollector — Tổng hợp link theo chương"/>
+  <meta property="og:description" content="Dán nhiều link, tự tách URL, xem trước & xuất .txt. Dark/Light mode. Không auto-save."/>
   <style>
-    /* ============================================
-       🎌 ANIME WIBU TODO - NEOBRUTALISM UI
-       ============================================ */
-
-    :root {
-      /* Color Palette */
-      --yellow: #FFD93D;
-      --blue: #3A7BFF;
-      --green: #9EE37D;
-      --white: #FFFFFF;
-      --black: #000000;
-      --pink: #FF6BCB;
-      --purple: #A855F7;
-
-      /* Semantic Colors */
-      --bg: #FFFFFF;
-      --text: #000000;
-      --shadow: 6px 6px 0 #000000;
-      --shadow-hover: 8px 8px 0 #000000;
-      --shadow-small: 3px 3px 0 #000000;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'JetBrains Mono', 'Space Mono', monospace;
-      background: var(--white);
-      color: var(--text);
-      line-height: 1.6;
-      overflow-x: hidden;
-      position: relative;
-      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><text y="16" font-size="16">✨</text></svg>'), auto;
-    }
-
-    /* Grid Background */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background:
-        linear-gradient(90deg, #f0f0f0 1px, transparent 1px),
-        linear-gradient(180deg, #f0f0f0 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      opacity: 0.6;
-      z-index: 0;
-    }
-
-    /* Grain Texture */
-    body::after {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="3" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
-      opacity: 0.03;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ============================================
-       LAYOUT STRUCTURE
-       ============================================ */
-
-    .app-container {
-      display: flex;
-      height: 100vh;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ============================================
-       SIDEBAR
-       ============================================ */
-
-    .sidebar {
-      width: 280px;
-      background: var(--yellow);
-      border-right: 4px solid var(--black);
-      padding: 24px 16px;
-      overflow-y: auto;
-      position: relative;
-      transition: transform 0.3s ease;
-    }
-
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 998;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .sidebar-overlay.show {
-      display: block;
-      opacity: 1;
-    }
-
-    .sidebar-header {
-      margin-bottom: 24px;
-    }
-
-    .sidebar-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .project-list {
-      list-style: none;
-    }
-
-    .project-item {
-      background: var(--white);
-      border: 3px solid var(--black);
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      box-shadow: var(--shadow-small);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .project-item:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 var(--black);
-    }
-
-    .project-item:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--black);
-    }
-
-    .project-item.active {
-      background: var(--blue);
-      color: var(--white);
-    }
-
-    .project-icon {
-      font-size: 20px;
-    }
-
-    .add-project-btn {
-      width: 100%;
-      background: var(--green);
-      border: 3px solid var(--black);
-      border-radius: 12px;
-      padding: 12px;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: var(--shadow-small);
-      transition: all 0.15s ease;
-      margin-top: 12px;
-    }
-
-    .add-project-btn:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 var(--black);
-    }
-
-    .add-project-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--black);
-    }
-
-    /* Chibi Stickers in Sidebar */
-    .sidebar-sticker {
-      position: absolute;
-      font-size: 40px;
-      animation: float 3s ease-in-out infinite;
-    }
-
-    .sticker-1 {
-      top: 120px;
-      right: 10px;
-      animation-delay: 0s;
-    }
-
-    .sticker-2 {
-      bottom: 100px;
-      left: 10px;
-      animation-delay: 1s;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px) rotate(-5deg); }
-      50% { transform: translateY(-10px) rotate(5deg); }
-    }
-
-    /* ============================================
-       MAIN CONTENT
-       ============================================ */
-
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* ============================================
-       HEADER
-       ============================================ */
-
-    .header {
-      background: var(--blue);
-      border-bottom: 4px solid var(--black);
-      padding: 16px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      z-index: 10;
-    }
-
-    .hamburger-menu {
-      display: none;
-      flex-direction: column;
-      gap: 4px;
-      cursor: pointer;
-      padding: 8px;
-      background: var(--yellow);
-      border: 3px solid var(--black);
-      border-radius: 8px;
-      box-shadow: var(--shadow-small);
-      transition: all 0.15s ease;
-    }
-
-    .hamburger-menu:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 var(--black);
-    }
-
-    .hamburger-menu:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--black);
-    }
-
-    .hamburger-line {
-      width: 24px;
-      height: 3px;
-      background: var(--black);
-      border-radius: 2px;
-      transition: all 0.3s ease;
-    }
-
-    .hamburger-menu.active .hamburger-line:nth-child(1) {
-      transform: rotate(45deg) translate(6px, 6px);
-    }
-
-    .hamburger-menu.active .hamburger-line:nth-child(2) {
-      opacity: 0;
-    }
-
-    .hamburger-menu.active .hamburger-line:nth-child(3) {
-      transform: rotate(-45deg) translate(6px, -6px);
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .logo {
-      width: 48px;
-      height: 48px;
-      background: var(--yellow);
-      border: 3px solid var(--black);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: var(--shadow-small);
-      transform: rotate(-3deg);
-    }
-
-    .logo-text {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--white);
-      text-shadow: 3px 3px 0 var(--black);
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .kawaii-avatar {
-      width: 44px;
-      height: 44px;
-      background: var(--pink);
-      border: 3px solid var(--black);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: var(--shadow-small);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .kawaii-avatar:hover {
-      transform: rotate(15deg) scale(1.1);
-    }
-
-    .lang-switcher {
-      background: var(--yellow);
-      border: 3px solid var(--black);
-      border-radius: 12px;
-      padding: 8px 16px;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: var(--shadow-small);
-      transition: all 0.15s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .lang-switcher:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 var(--black);
-    }
-
-    .lang-switcher:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--black);
-    }
-
-    /* ============================================
-       TAB NAVIGATION
-       ============================================ */
-
-    .tabs {
-      background: var(--white);
-      border-bottom: 4px solid var(--black);
-      padding: 0 32px;
-      display: flex;
-      gap: 8px;
-      position: relative;
-    }
-
-    .tab {
-      background: transparent;
-      border: none;
-      border-top: 3px solid transparent;
-      border-left: 3px solid transparent;
-      border-right: 3px solid transparent;
-      padding: 12px 20px;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      position: relative;
-      transition: all 0.2s ease;
-      color: var(--text);
-    }
-
-    .tab:hover {
-      background: rgba(255, 217, 61, 0.2);
-    }
-
-    .tab.active {
-      background: var(--yellow);
-      border-top: 3px solid var(--black);
-      border-left: 3px solid var(--black);
-      border-right: 3px solid var(--black);
-      box-shadow: 0 -2px 8px rgba(255, 217, 61, 0.5);
-    }
-
-    /* ============================================
-       TASK BOARD
-       ============================================ */
-
-    .task-board {
-      flex: 1;
-      padding: 32px;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .board-header {
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .board-title {
-      font-size: 28px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .add-task-btn {
-      background: var(--blue);
-      color: var(--white);
-      border: 3px solid var(--black);
-      border-radius: 12px;
-      padding: 12px 24px;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-      transition: all 0.15s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .add-task-btn:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: var(--shadow-hover);
-    }
-
-    .add-task-btn:active {
-      transform: translate(3px, 3px);
-      box-shadow: 3px 3px 0 var(--black);
-      animation: bounce 0.3s ease;
-    }
-
-    @keyframes bounce {
-      0%, 100% { transform: translate(3px, 3px); }
-      50% { transform: translate(3px, 3px) scale(0.95); }
-    }
-
-    /* ============================================
-       TASK CARDS
-       ============================================ */
-
-    .task-grid {
-      display: grid;
-      gap: 20px;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    }
-
-    .task-card {
-      background: var(--white);
-      border: 4px solid var(--black);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .task-card:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: var(--shadow-hover);
-    }
-
-    .task-card.completed {
-      opacity: 0.7;
-      background: #f5f5f5;
-    }
-
-    .task-card.completed .task-title {
-      text-decoration: line-through;
-    }
-
-    .task-header {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .task-checkbox {
-      width: 28px;
-      height: 28px;
-      min-width: 28px;
-      border: 3px solid var(--black);
-      border-radius: 6px;
-      background: var(--white);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-
-    .task-checkbox:hover {
-      background: var(--yellow);
-      transform: scale(1.1);
-    }
-
-    .task-checkbox.checked {
-      background: var(--green);
-    }
-
-    .task-title {
-      flex: 1;
-      font-size: 16px;
-      font-weight: 600;
-      word-wrap: break-word;
-      margin-top: 2px;
-    }
-
-    .task-tag {
-      display: inline-block;
-      padding: 4px 10px;
-      border: 2px solid var(--black);
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      margin-top: 8px;
-      box-shadow: 2px 2px 0 var(--black);
-    }
-
-    .tag-progress { background: var(--yellow); }
-    .tag-done { background: var(--green); }
-    .tag-urgent { background: var(--pink); }
-
-    .task-actions {
-      margin-top: 12px;
-      display: flex;
-      gap: 8px;
-    }
-
-    .task-btn {
-      padding: 6px 12px;
-      border: 2px solid var(--black);
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      background: var(--white);
-      box-shadow: 2px 2px 0 var(--black);
-    }
-
-    .task-btn:hover {
-      transform: translate(-1px, -1px);
-      box-shadow: 3px 3px 0 var(--black);
-    }
-
-    .task-btn:active {
-      transform: translate(1px, 1px);
-      box-shadow: 1px 1px 0 var(--black);
-    }
-
-    .task-btn.delete {
-      background: var(--pink);
-      color: var(--white);
-    }
-
-    /* ============================================
-       FOOTER
-       ============================================ */
-
-    .footer {
-      background: var(--green);
-      border-top: 4px solid var(--black);
-      padding: 12px 32px;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 600;
-      position: relative;
-    }
-
-    /* ============================================
-       TOOLTIP
-       ============================================ */
-
-    .tooltip {
-      position: fixed;
-      background: var(--yellow);
-      border: 3px solid var(--black);
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      box-shadow: var(--shadow-small);
-      pointer-events: none;
-      z-index: 1000;
-      opacity: 0;
-      transform: scale(0.8);
-      transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    }
-
-    .tooltip.show {
-      opacity: 1;
-      transform: scale(1);
-      animation: wobble 0.4s ease;
-    }
-
-    @keyframes wobble {
-      0% { transform: scale(1) rotate(0deg); }
-      25% { transform: scale(1.05) rotate(-5deg); }
-      50% { transform: scale(1.05) rotate(5deg); }
-      75% { transform: scale(1.05) rotate(-5deg); }
-      100% { transform: scale(1) rotate(0deg); }
-    }
-
-    /* ============================================
-       CONFETTI
-       ============================================ */
-
-    .confetti {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9999;
-      animation: confetti-fall 1.5s ease-out forwards;
-      font-size: 24px;
-    }
-
-    @keyframes confetti-fall {
-      0% {
-        opacity: 1;
-        transform: translateY(0) rotate(0deg);
-      }
-      100% {
-        opacity: 0;
-        transform: translateY(600px) rotate(720deg);
-      }
-    }
-
-    /* ============================================
-       SAKURA PETALS
-       ============================================ */
-
-    .sakura {
-      position: fixed;
-      font-size: 20px;
-      pointer-events: none;
-      z-index: 5;
-      animation: sakura-fall 8s linear infinite;
-    }
-
-    @keyframes sakura-fall {
-      0% {
-        transform: translateY(-50px) translateX(0) rotate(0deg);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(100vh) translateX(100px) rotate(360deg);
-        opacity: 0;
-      }
-    }
-
-    /* ============================================
-       MODAL (for adding tasks)
-       ============================================ */
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      animation: fadeIn 0.2s ease;
-    }
-
-    .modal-overlay.show {
-      display: flex;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .modal {
-      background: var(--white);
-      border: 4px solid var(--black);
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-      max-width: 500px;
-      width: 90%;
-      animation: slideUp 0.3s ease;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(50px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .modal-header {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .modal-input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 3px solid var(--black);
-      border-radius: 12px;
-      font-family: inherit;
-      font-size: 14px;
-      margin-bottom: 16px;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-
-    .modal-input:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(58, 123, 255, 0.2);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-    }
-
-    .modal-btn {
-      padding: 12px 24px;
-      border: 3px solid var(--black);
-      border-radius: 12px;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: var(--shadow-small);
-      transition: all 0.15s ease;
-    }
-
-    .modal-btn:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 var(--black);
-    }
-
-    .modal-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--black);
-    }
-
-    .modal-btn.primary {
-      background: var(--blue);
-      color: var(--white);
-    }
-
-    .modal-btn.secondary {
-      background: var(--white);
-    }
-
-    /* ============================================
-       SCROLLBAR
-       ============================================ */
-
-    ::-webkit-scrollbar {
-      width: 12px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--white);
-      border-left: 2px solid var(--black);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--yellow);
-      border: 2px solid var(--black);
-      border-radius: 6px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--blue);
-    }
-
-    /* ============================================
-       RESPONSIVE
-       ============================================ */
-
-    /* Tablet Layout (768px - 1024px) */
-    @media (max-width: 1024px) and (min-width: 769px) {
-      .sidebar {
-        width: 240px;
-      }
-
-      .task-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 16px;
-      }
-
-      .header {
-        padding: 14px 24px;
-      }
-
-      .task-board {
-        padding: 24px;
-      }
-
-      .tabs {
-        padding: 0 24px;
-      }
-
-      .logo-text {
-        font-size: 20px;
-      }
-    }
-
-    /* Mobile Layout (< 768px) */
-    @media (max-width: 768px) {
-      /* Sidebar as overlay */
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100%;
-        z-index: 999;
-        transform: translateX(-100%);
-      }
-
-      .sidebar.mobile-open {
-        transform: translateX(0);
-        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
-      }
-
-      /* Show hamburger menu */
-      .hamburger-menu {
-        display: flex;
-      }
-
-      /* Header adjustments */
-      .header {
-        padding: 12px 16px;
-      }
-
-      .logo {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-      }
-
-      .logo-text {
-        font-size: 18px;
-      }
-
-      .kawaii-avatar {
-        width: 36px;
-        height: 36px;
-        font-size: 20px;
-      }
-
-      .lang-switcher {
-        padding: 6px 12px;
-        font-size: 12px;
-      }
-
-      /* Tabs */
-      .tabs {
-        padding: 0 12px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .tab {
-        font-size: 13px;
-        padding: 10px 16px;
-        white-space: nowrap;
-      }
-
-      /* Task Board */
-      .task-board {
-        padding: 16px;
-      }
-
-      .board-header {
-        flex-direction: column;
-        gap: 12px;
-        align-items: flex-start;
-      }
-
-      .board-title {
-        font-size: 22px;
-      }
-
-      .add-task-btn {
-        width: 100%;
-        justify-content: center;
-        padding: 14px 24px;
-        font-size: 15px;
-      }
-
-      /* Task Grid - Single column on mobile */
-      .task-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-
-      /* Task Cards - Larger touch targets */
-      .task-card {
-        padding: 18px;
-      }
-
-      .task-checkbox {
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
-        font-size: 20px;
-      }
-
-      .task-title {
-        font-size: 15px;
-      }
-
-      .task-btn {
-        flex: 1;
-        padding: 10px 12px;
-        font-size: 12px;
-        text-align: center;
-      }
-
-      /* Modal - Full screen on mobile */
-      .modal {
-        width: 95%;
-        max-width: none;
-        padding: 24px;
-        margin: 16px;
-      }
-
-      .modal-header {
-        font-size: 20px;
-      }
-
-      .modal-input {
-        padding: 14px 16px;
-        font-size: 15px;
-      }
-
-      .modal-btn {
-        flex: 1;
-        padding: 14px 20px;
-        font-size: 15px;
-      }
-
-      /* Footer */
-      .footer {
-        font-size: 11px;
-        padding: 10px 16px;
-      }
-    }
-
-    /* Small Mobile (< 480px) */
-    @media (max-width: 480px) {
-      .header-left {
-        gap: 8px;
-      }
-
-      .logo-text {
-        font-size: 16px;
-      }
-
-      .board-title {
-        font-size: 20px;
-      }
-
-      .task-card {
-        padding: 16px;
-      }
-
-      .task-actions {
-        flex-wrap: wrap;
-      }
-
-      .task-btn {
-        font-size: 11px;
-      }
-
-      .modal {
-        margin: 8px;
-        padding: 20px;
-      }
-    }
-
-    /* Landscape Mobile */
-    @media (max-height: 600px) and (orientation: landscape) {
-      .sidebar {
-        width: 240px;
-      }
-
-      .header {
-        padding: 10px 20px;
-      }
-
-      .task-board {
-        padding: 12px 20px;
-      }
-
-      .modal {
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-    }
+    :root{
+      /* LIGHT THEME */
+      --bg:#f6f7fb; --text:#0b1220; --muted:#5b6472;
+      --card:#ffffff; --input:#f3f5f9; --border:#e3e6ee;
+      --accent:#2563eb; --danger:#dc2626; --shadow:0 10px 24px rgba(11,18,32,.08);
+    }
+    :root[data-theme="dark"]{
+      /* DARK THEME */
+      --bg:#0a0f1a; --text:#e6edf3; --muted:#93a4b6;
+      --card:#152133; --input:#0b1220; --border:#2a3a4d;
+      --accent:#3b82f6; --danger:#ef4444; --shadow:0 10px 24px rgba(0,0,0,.28);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{font-family:Segoe UI, Roboto, system-ui, sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+
+    .container{max-width:1200px;margin:28px auto;padding:0 16px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7c3aed)}
+    h1{font-size:22px}
+    .sub{color:var(--muted);margin-bottom:16px}
+
+    .toolbar{display:flex;align-items:center;gap:10px}
+    .theme-toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--input);padding:8px 10px;border-radius:10px;cursor:pointer}
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+    .card h2{font-size:18px;margin-bottom:10px}
+    .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+
+    .row{margin-bottom:12px}
+    input[type="text"], input[type="url"], textarea{
+      width:100%;background:var(--input);color:var(--text);
+      border:1px solid var(--border);border-radius:14px;padding:12px;outline:none
+    }
+    textarea{min-height:84px;resize:vertical}
+    input::placeholder, textarea::placeholder{color:var(--muted)}
+    input:focus, textarea:focus{border-color:var(--accent)}
+
+    .list{margin-top:6px}
+    .item{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .remove{min-width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:transparent;border:1px solid var(--border);color:var(--danger);cursor:pointer}
+
+    .btn{height:38px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--input);color:var(--text);cursor:pointer}
+    .btn:hover{border-color:var(--accent)}
+    .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .btn.danger{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+    :root[data-theme="dark"] .btn.danger{background:#361a1a;border-color:#732626;color:#ff9c9c}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+
+    .preview{background:var(--input);border:1px dashed var(--border);border-radius:16px;padding:12px;margin-top:10px;white-space:pre-wrap}
+    footer{text-align:center;color:var(--muted);margin:18px 0}
+    .options{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:14px;margin-top:8px}
+    .options input{width:auto}
+
+    /* Toast */
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+    .toast{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);color:var(--text);padding:10px 12px;border-radius:12px;min-width:220px}
+
+    /* Spinner */
+    .spinner{width:16px;height:16px;border-radius:999px;border:2px solid var(--border);border-top-color:var(--accent);animation:spin 1s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
-
-  <!-- Sakura Petals -->
-  <div id="sakura-container"></div>
-
-  <!-- Sidebar Overlay for Mobile -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-  <!-- App Container -->
-  <div class="app-container">
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-title" data-i18n="sidebarProjects">
-          📁 Projects
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>LinkCollector</h1>
+          <div class="sub">Dán nhiều link, tự tách URL, xem trước & xuất </div>
         </div>
       </div>
-
-      <ul class="project-list" id="projectList">
-        <li class="project-item active" data-project="personal">
-          <span class="project-icon">🌸</span>
-          <span data-i18n="projectPersonal">Personal</span>
-        </li>
-        <li class="project-item" data-project="work">
-          <span class="project-icon">⚔️</span>
-          <span data-i18n="projectWork">Work Quest</span>
-        </li>
-        <li class="project-item" data-project="study">
-          <span class="project-icon">📚</span>
-          <span data-i18n="projectStudy">Study Mode</span>
-        </li>
-        <li class="project-item" data-project="anime">
-          <span class="project-icon">🎌</span>
-          <span data-i18n="projectAnime">Anime List</span>
-        </li>
-      </ul>
-
-      <button class="add-project-btn" data-i18n="addProject">
-        ➕ New Project
-      </button>
-
-      <!-- Chibi Stickers -->
-      <div class="sidebar-sticker sticker-1">🐱</div>
-      <div class="sidebar-sticker sticker-2">🌸</div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-
-      <!-- Header -->
-      <header class="header">
-        <div class="header-left">
-          <div class="hamburger-menu" id="hamburgerMenu">
-            <div class="hamburger-line"></div>
-            <div class="hamburger-line"></div>
-            <div class="hamburger-line"></div>
-          </div>
-          <div class="logo">✨</div>
-          <div class="logo-text" data-i18n="logo">WIBU TODO</div>
-        </div>
-        <div class="header-right">
-          <button class="lang-switcher" id="langSwitcher">
-            <span id="langIcon">🇬🇧</span>
-            <span id="langText">EN</span>
-          </button>
-          <div class="kawaii-avatar" data-i18n-title="avatarTitle" title="Kawaii User-chan">😺</div>
-        </div>
-      </header>
-
-      <!-- Tabs -->
-      <div class="tabs">
-        <button class="tab active" data-i18n="tabTasks">📋 Tasks</button>
-        <button class="tab" data-i18n="tabStats">📊 Stats</button>
-        <button class="tab" data-i18n="tabSettings">⚙️ Settings</button>
+      <div class="toolbar">
+        <button class="theme-toggle" id="themeBtn" aria-label="Đổi giao diện">🌙 <span id="themeLabel">Dark</span></button>
       </div>
+    </header>
 
-      <!-- Task Board -->
-      <section class="task-board">
-        <div class="board-header">
-          <h2 class="board-title" data-i18n="boardTitle">
-            🎯 Today's Quests
-          </h2>
-          <button class="add-task-btn" id="addTaskBtn" data-i18n="addTask">
-            ➕ New Task
-          </button>
-        </div>
-
-        <div class="task-grid" id="taskGrid">
-          <!-- Sample Tasks -->
-          <div class="task-card" data-task-id="1">
-            <div class="task-header">
-              <div class="task-checkbox" data-task-id="1"></div>
-              <div class="task-title">Finish watching One Piece episode 1000</div>
-            </div>
-            <span class="task-tag tag-progress" data-i18n="tagInProgress">In Progress</span>
-            <div class="task-actions">
-              <button class="task-btn edit" data-i18n="btnEdit">✏️ Edit</button>
-              <button class="task-btn delete" data-i18n="btnDelete">🗑️ Delete</button>
-            </div>
-          </div>
-
-          <div class="task-card" data-task-id="2">
-            <div class="task-header">
-              <div class="task-checkbox" data-task-id="2"></div>
-              <div class="task-title">Complete React project for portfolio</div>
-            </div>
-            <span class="task-tag tag-urgent" data-i18n="tagUrgent">Urgent</span>
-            <div class="task-actions">
-              <button class="task-btn edit" data-i18n="btnEdit">✏️ Edit</button>
-              <button class="task-btn delete" data-i18n="btnDelete">🗑️ Delete</button>
-            </div>
-          </div>
-
-          <div class="task-card" data-task-id="3">
-            <div class="task-header">
-              <div class="task-checkbox" data-task-id="3"></div>
-              <div class="task-title">Study Japanese vocabulary (50 words)</div>
-            </div>
-            <span class="task-tag tag-progress" data-i18n="tagInProgress">In Progress</span>
-            <div class="task-actions">
-              <button class="task-btn edit" data-i18n="btnEdit">✏️ Edit</button>
-              <button class="task-btn delete" data-i18n="btnDelete">🗑️ Delete</button>
-            </div>
-          </div>
-
-          <div class="task-card" data-task-id="4">
-            <div class="task-header">
-              <div class="task-checkbox" data-task-id="4"></div>
-              <div class="task-title">Draw chibi character for profile</div>
-            </div>
-            <span class="task-tag tag-progress" data-i18n="tagInProgress">In Progress</span>
-            <div class="task-actions">
-              <button class="task-btn edit" data-i18n="btnEdit">✏️ Edit</button>
-              <button class="task-btn delete" data-i18n="btnDelete">🗑️ Delete</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Footer -->
-      <footer class="footer" data-i18n="footer">
-        Yatta! Task cleared 🎌✨ • Made with 💚 by Wibu Devs
-      </footer>
-
-    </main>
-  </div>
-
-  <!-- Tooltip -->
-  <div class="tooltip" id="tooltip"></div>
-
-  <!-- Modal for Adding Tasks -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-header" data-i18n="modalTitle">
-        ✨ Add New Task
-      </div>
-      <input type="text" class="modal-input" id="taskInput" data-i18n-placeholder="modalPlaceholder" placeholder="Enter task name..." />
-      <div class="modal-actions">
-        <button class="modal-btn secondary" id="cancelBtn" data-i18n="btnCancel">Cancel</button>
-        <button class="modal-btn primary" id="confirmBtn" data-i18n="btnAddTask">Add Task</button>
+    <div class="card">
+      <h2>Thiết lập chung</h2>
+      <div class="row"><input id="filename" type="text" placeholder="Tên file (vd: tong_hop_link)"></div>
+      <div class="row"><input id="docTitle" type="text" placeholder="Tiêu đề tài liệu"></div>
+      <div class="row"><textarea id="docNote" placeholder="Ghi chú (tuỳ chọn)"></textarea></div>
+      <div class="options">
+        <label><input type="checkbox" id="dedupe" checked> Bỏ trùng link</label>
+        <label><input type="checkbox" id="autosplit" checked> Tự tách link khi xuất/preview</label>
       </div>
     </div>
+
+    <div class="grid" style="margin-top:18px">
+      <div class="card" data-chapter="1">
+        <h2>Chương 1</h2>
+        <div class="actions">
+          <button class="btn" onclick="addLink(1)">+ Thêm link</button>
+          <button class="btn" onclick="bulkPaste(1)">Dán nhiều link…</button>
+          <button class="btn" onclick="pickFile(1)">Nhập file…</button>
+        </div>
+        <div id="list-1" class="list"></div>
+      </div>
+
+      <div class="card" data-chapter="2">
+        <h2>Chương 2</h2>
+        <div class="actions">
+          <button class="btn" onclick="addLink(2)">+ Thêm link</button>
+          <button class="btn" onclick="bulkPaste(2)">Dán nhiều link…</button>
+          <button class="btn" onclick="pickFile(2)">Nhập file…</button>
+        </div>
+        <div id="list-2" class="list"></div>
+      </div>
+
+      <div class="card" data-chapter="3">
+        <h2>Chương 3</h2>
+        <div class="actions">
+          <button class="btn" onclick="addLink(3)">+ Thêm link</button>
+          <button class="btn" onclick="bulkPaste(3)">Dán nhiều link…</button>
+          <button class="btn" onclick="pickFile(3)">Nhập file…</button>
+        </div>
+        <div id="list-3" class="list"></div>
+      </div>
+
+      <div class="card" data-chapter="4">
+        <h2>Chương 4</h2>
+        <div class="actions">
+          <button class="btn" onclick="addLink(4)">+ Thêm link</button>
+          <button class="btn" onclick="bulkPaste(4)">Dán nhiều link…</button>
+          <button class="btn" onclick="pickFile(4)">Nhập file…</button>
+        </div>
+        <div id="list-4" class="list"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h2>Kết quả</h2>
+      <div class="actions">
+        <button class="btn" onclick="generatePreview()">Xem trước</button>
+        <button class="btn primary" onclick="downloadTxt()">Xuất .txt</button>
+        <button class="btn" onclick="copyToClipboard()">Copy nội dung</button>
+        <button class="btn danger" onclick="clearAll()">Xoá tất cả</button>
+      </div>
+      <div id="preview" class="preview"></div>
+    </div>
+
+    <footer>© 2025 LinkCollector • Publish by ĐÔNG</footer>
   </div>
 
+  <!-- Toast container -->
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
   <script>
-    // ============================================
-    // 🎌 ANIME TODO APP - JAVASCRIPT
-    // ============================================
 
-    // ============================================
-    // TRANSLATIONS / LOCALIZATION
-    // ============================================
+    // ===== THEME TOGGLE (no auto-save) =====
+    const root = document.documentElement;
+    const themeBtn = document.getElementById('themeBtn');
+    const themeLabel = document.getElementById('themeLabel');
+    let dark = true; // default dark
+    function applyTheme(){ root.setAttribute('data-theme', dark? 'dark':'light'); themeLabel.textContent = dark ? 'Dark' : 'Light'; themeBtn.firstChild.textContent = dark ? '🌙' : '☀️'; }
+    themeBtn.addEventListener('click', ()=>{ dark = !dark; applyTheme(); });
+    applyTheme();
 
-    const translations = {
-      en: {
-        // Page meta
-        pageTitle: '✨ Wibu TODO — Anime Task Manager',
-        pageDescription: 'Kawaii anime-themed TODO app with premium Neobrutalism UI. Yatta! 🎌✨',
+    // ===== TOAST =====
+    function toast(msg){
+      const box = document.createElement('div'); box.className='toast'; box.textContent=msg;
+      const wrap=document.getElementById('toastWrap'); wrap.appendChild(box);
+      setTimeout(()=>{ box.style.opacity='0'; box.style.transition='opacity .4s'; }, 2200);
+      setTimeout(()=> box.remove(), 2600);
+    }
 
-        // Header
-        logo: 'WIBU TODO',
-        avatarTitle: 'Kawaii User-chan',
-
-        // Sidebar
-        sidebarProjects: '📁 Projects',
-        projectPersonal: 'Personal',
-        projectWork: 'Work Quest',
-        projectStudy: 'Study Mode',
-        projectAnime: 'Anime List',
-        addProject: '➕ New Project',
-
-        // Tabs
-        tabTasks: '📋 Tasks',
-        tabStats: '📊 Stats',
-        tabSettings: '⚙️ Settings',
-
-        // Task Board
-        boardTitle: '🎯 Today\'s Quests',
-        addTask: '➕ New Task',
-
-        // Task Tags
-        tagInProgress: 'In Progress',
-        tagUrgent: 'Urgent',
-        tagDone: 'Done',
-
-        // Buttons
-        btnEdit: '✏️ Edit',
-        btnDelete: '🗑️ Delete',
-        btnCancel: 'Cancel',
-        btnAddTask: 'Add Task',
-
-        // Modal
-        modalTitle: '✨ Add New Task',
-        modalPlaceholder: 'Enter task name...',
-
-        // Messages
-        taskCompleted: 'Yatta! Task completed! 🎉',
-        editTaskPrompt: 'Edit task:',
-
-        // Footer
-        footer: 'Yatta! Task cleared 🎌✨ • Made with 💚 by Wibu Devs'
-      },
-      vi: {
-        // Page meta
-        pageTitle: '✨ Wibu TODO — Quản Lý Công Việc Anime',
-        pageDescription: 'Ứng dụng TODO theo chủ đề anime kawaii với giao diện Neobrutalism cao cấp. Yatta! 🎌✨',
-
-        // Header
-        logo: 'WIBU TODO',
-        avatarTitle: 'Người dùng Kawaii-chan',
-
-        // Sidebar
-        sidebarProjects: '📁 Dự Án',
-        projectPersonal: 'Cá Nhân',
-        projectWork: 'Nhiệm Vụ Công Việc',
-        projectStudy: 'Chế Độ Học Tập',
-        projectAnime: 'Danh Sách Anime',
-        addProject: '➕ Dự Án Mới',
-
-        // Tabs
-        tabTasks: '📋 Công Việc',
-        tabStats: '📊 Thống Kê',
-        tabSettings: '⚙️ Cài Đặt',
-
-        // Task Board
-        boardTitle: '🎯 Nhiệm Vụ Hôm Nay',
-        addTask: '➕ Thêm Công Việc',
-
-        // Task Tags
-        tagInProgress: 'Đang Thực Hiện',
-        tagUrgent: 'Gấp',
-        tagDone: 'Hoàn Thành',
-
-        // Buttons
-        btnEdit: '✏️ Sửa',
-        btnDelete: '🗑️ Xóa',
-        btnCancel: 'Hủy',
-        btnAddTask: 'Thêm Công Việc',
-
-        // Modal
-        modalTitle: '✨ Thêm Công Việc Mới',
-        modalPlaceholder: 'Nhập tên công việc...',
-
-        // Messages
-        taskCompleted: 'Yatta! Hoàn thành công việc! 🎉',
-        editTaskPrompt: 'Sửa công việc:',
-
-        // Footer
-        footer: 'Yatta! Nhiệm vụ hoàn thành 🎌✨ • Được tạo với 💚 bởi Wibu Devs'
+    // Mở hộp thoại chọn file & đọc nội dung (text)
+function pickFile(ch){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.txt,.csv,text/plain'; // có thể mở rộng nếu cần
+  input.onchange = async (e)=>{
+    const file = e.target.files?.[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      // Tách link từ nội dung file
+      const links = extractLinks(text);
+      if(links.length === 0){
+        toast('Không phát hiện URL trong file');
+        return;
       }
-    };
-
-    let currentLang = localStorage.getItem('language') || 'en';
-
-    function setLanguage(lang) {
-      currentLang = lang;
-      localStorage.setItem('language', lang);
-
-      // Update page title and meta
-      document.getElementById('page-title').textContent = translations[lang].pageTitle;
-      document.getElementById('page-description').setAttribute('content', translations[lang].pageDescription);
-      document.documentElement.setAttribute('lang', lang);
-
-      // Update all elements with data-i18n attribute
-      document.querySelectorAll('[data-i18n]').forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        if (translations[lang][key]) {
-          element.textContent = translations[lang][key];
-        }
+      // Thêm vào chương tương ứng
+      const list = document.getElementById(`list-${ch}`);
+      links.forEach((u)=>{
+        const row = createRow(ch);
+        row.querySelector('input').value = u;
+        list.appendChild(row);
       });
+      toast(`Đã nhập ${links.length} link từ file`);
+    }catch(err){
+      console.error(err);
+      toast('Lỗi đọc file');
+    }
+  };
+  input.click();
+}
+    // ===== CORE =====
+    function nowStamp(){const d=new Date();const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`}
 
-      // Update elements with data-i18n-placeholder attribute
-      document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-        const key = element.getAttribute('data-i18n-placeholder');
-        if (translations[lang][key]) {
-          element.setAttribute('placeholder', translations[lang][key]);
-        }
+    function createRow(ch){
+  const wrap=document.createElement('div');
+  wrap.className='item';
+  wrap.innerHTML=`<input type="url" placeholder="Dán link hoặc đoạn có chứa link…" inputmode="url">
+                  <button class="remove" title="Xoá">✕</button>`;
+  const input = wrap.querySelector("input");
+  attachAutoFilter(input, ch);    // 👈 gắn lọc tự động
+  wrap.querySelector('.remove').onclick=()=>wrap.remove();
+  return wrap;
+}
+
+
+    function addLink(ch){
+  document.getElementById(`list-${ch}`).appendChild(createRow(ch));
+}
+
+//filter
+function attachAutoFilter(input, ch){
+  // Xử lý dán: nếu nhiều link → tách ra nhiều ô
+  input.addEventListener('paste', (e)=>{
+    const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+    const links = extractLinks(text);
+    if(links.length > 1){
+      e.preventDefault();
+      input.value = links[0];
+      for(let i=1;i<links.length;i++){
+        const row=createRow(ch);
+        row.querySelector('input').value=links[i];
+        document.getElementById(`list-${ch}`).appendChild(row);
+      }
+    }
+  });
+
+  // Lọc ngay khi gõ (debounced)
+  const run = debounce(()=>{
+    const text = input.value.trim();
+    if(!text) return;
+    const links = extractLinks(text);
+    if(links.length === 0){
+      // chưa nhận ra URL hợp lệ → để user tiếp tục gõ
+      return;
+    }
+    // giữ link đầu tiên
+    input.value = links[0];
+    // link còn lại → tạo thêm ô
+    for(let i=1;i<links.length;i++){
+      const row=createRow(ch);
+      row.querySelector('input').value=links[i];
+      document.getElementById(`list-${ch}`).appendChild(row);
+    }
+  }, 250);
+
+  input.addEventListener('input', run);
+}
+
+    // Bóc tách URL: http/https, www., domain trần (example.com/path)
+    function extractLinks(text){
+      if(!text) return [];
+      const urls=[];
+      // http/https
+      const r1=/(https?:\/\/[^\s"'<>]+)/gi; let m; while((m=r1.exec(text))!==null){urls.push(m[1].replace(/[),.;]+$/,''))}
+      // www.
+      const r2=/(^|\s)(www\.[^\s"'<>]+)/gi; let n; while((n=r2.exec(text))!==null){let u=n[2].replace(/[),.;]+$/,''); if(!/^https?:\/\//i.test(u)) u='https://'+u; urls.push(u)}
+      // domain trần
+      const r3=/\b([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[a-zA-Z0-9._\-\/?=&%#]*)?)/gi; let k; while((k=r3.exec(text))!==null){let u=k[1].replace(/[),.;]+$/,''); if(!/^https?:\/\//i.test(u)) u='https://'+u; urls.push(u)}
+      return urls;
+    }
+// gõ mượt
+function debounce(fn, wait=250){
+  let t;
+  return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), wait); };
+}
+
+    function bulkPaste(ch){
+  const text=prompt('Dán danh sách link hoặc đoạn văn có chứa link:');
+  if(!text) return;
+  const arr=extractLinks(text);
+  arr.forEach(v=>{
+    const row=createRow(ch);
+    row.querySelector('input').value=v;
+    document.getElementById(`list-${ch}`).appendChild(row);
+  });
+  toast(arr.length? `Đã thêm ${arr.length} link` : 'Không phát hiện URL hợp lệ');
+}
+
+    function collectRaw(ch){return[...document.querySelectorAll(`#list-${ch} input[type=url]`)].map(i=>i.value).filter(Boolean)}
+
+    function getLinks(ch){
+      const autosplit=document.getElementById('autosplit').checked;
+      let items = collectRaw(ch).map(s=>s.trim()).filter(Boolean);
+      if(autosplit){ items = items.flatMap(v=>extractLinks(v)); }
+      if(document.getElementById('dedupe').checked){
+        const seen=new Set(); items = items.filter(v=>{const k=v.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true;});
+      }
+      return items;
+    }
+
+    function generateText(){
+      const title=document.getElementById('docTitle').value.trim();
+      const note=document.getElementById('docNote').value.trim();
+      const header=[title?`# ${title}`:'# Tổng hợp link chương 1–4', note?`> ${note}`:'', `Tạo lúc: ${new Date().toLocaleString()}`, ''].filter(Boolean).join('\n');
+      const content=[1,2,3,4].map(ch=>{const links=getLinks(ch); if(!links.length) return null; const items=links.map((l,i)=>`  ${i+1}. ${l}`).join('\n'); return `Chương ${ch}:\n${items}`}).filter(Boolean).join('\n\n');
+      return header+(content?content:'— (Chưa có link)');
+    }
+
+    function generatePreview(){ document.getElementById('preview').textContent = generateText(); toast('Đã cập nhật xem trước'); }
+
+    function downloadTxt(){
+      const blob=new Blob([generateText()],{type:'text/plain;charset=utf-8'});
+      const a=document.createElement('a');
+      const fname=(document.getElementById('filename').value.trim()||`tong_hop_link_${nowStamp()}`)+'.txt';
+      a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+      URL.revokeObjectURL(a.href); toast('Đã xuất file .txt');
+    }
+
+    function copyToClipboard(){
+      navigator.clipboard.writeText(generateText()).then(()=>toast('Đã copy nội dung')).catch(()=>{
+        const ta=document.createElement('textarea'); ta.value=generateText(); document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Đã copy nội dung');
       });
+    }
 
-      // Update elements with data-i18n-title attribute
-      document.querySelectorAll('[data-i18n-title]').forEach(element => {
-        const key = element.getAttribute('data-i18n-title');
-        if (translations[lang][key]) {
-          element.setAttribute('title', translations[lang][key]);
-        }
+    function clearAll(){ if(!confirm('Xoá tất cả link?')) return; [1,2,3,4].forEach(ch=>document.getElementById(`list-${ch}`).innerHTML=''); document.getElementById('preview').textContent=''; toast('Đã xoá toàn bộ'); }
+
+    // Seed: 1 ô cho mỗi chương (không auto-save)
+    window.addEventListener('DOMContentLoaded',()=>[1,2,3,4].forEach(addLink));
+// Kéo-thả file vào card chương
+['1','2','3','4'].forEach(ch=>{
+  const card = document.querySelector(`.card[data-chapter="${ch}"]`);
+  if(!card) return;
+
+  // highlight khi kéo vào
+  ['dragenter','dragover'].forEach(ev=>{
+    card.addEventListener(ev, e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      card.style.outline = '2px dashed var(--accent)';
+      card.style.outlineOffset = '6px';
+    });
+  });
+
+  ['dragleave','drop'].forEach(ev=>{
+    card.addEventListener(ev, e=>{
+      e.preventDefault();
+      card.style.outline = 'none';
+      card.style.outlineOffset = '0';
+    });
+  });
+
+  card.addEventListener('drop', async e=>{
+    const file = e.dataTransfer.files?.[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const links = extractLinks(text);
+      if(links.length === 0){ toast('Không phát hiện URL trong file'); return; }
+      const list = document.getElementById(`list-${ch}`);
+      links.forEach(u=>{
+        const row = createRow(ch);
+        row.querySelector('input').value = u;
+        list.appendChild(row);
       });
-
-      // Update language switcher
-      const langIcon = document.getElementById('langIcon');
-      const langText = document.getElementById('langText');
-      if (lang === 'vi') {
-        langIcon.textContent = '🇻🇳';
-        langText.textContent = 'VI';
-      } else {
-        langIcon.textContent = '🇬🇧';
-        langText.textContent = 'EN';
-      }
+      toast(`Đã kéo-thả ${links.length} link vào Chương ${ch}`);
+    }catch(err){
+      console.error(err); toast('Lỗi đọc file');
     }
-
-    // Initialize language on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      setLanguage(currentLang);
-    });
-
-    // Language switcher event
-    document.getElementById('langSwitcher').addEventListener('click', () => {
-      const newLang = currentLang === 'en' ? 'vi' : 'en';
-      setLanguage(newLang);
-    });
-
-    let taskIdCounter = 5;
-
-    // ============================================
-    // TASK MANAGEMENT
-    // ============================================
-
-    function createTaskCard(title, id = null) {
-      if (!id) id = taskIdCounter++;
-
-      const card = document.createElement('div');
-      card.className = 'task-card';
-      card.setAttribute('data-task-id', id);
-
-      card.innerHTML = `
-        <div class="task-header">
-          <div class="task-checkbox" data-task-id="${id}"></div>
-          <div class="task-title">${title}</div>
-        </div>
-        <span class="task-tag tag-progress" data-i18n="tagInProgress">${translations[currentLang].tagInProgress}</span>
-        <div class="task-actions">
-          <button class="task-btn edit" data-i18n="btnEdit">${translations[currentLang].btnEdit}</button>
-          <button class="task-btn delete" data-i18n="btnDelete">${translations[currentLang].btnDelete}</button>
-        </div>
-      `;
-
-      return card;
-    }
-
-    // ============================================
-    // EVENT HANDLERS
-    // ============================================
-
-    // Add Task Button
-    document.getElementById('addTaskBtn').addEventListener('click', () => {
-      document.getElementById('modalOverlay').classList.add('show');
-      document.getElementById('taskInput').focus();
-    });
-
-    // Cancel Modal
-    document.getElementById('cancelBtn').addEventListener('click', () => {
-      document.getElementById('modalOverlay').classList.remove('show');
-      document.getElementById('taskInput').value = '';
-    });
-
-    // Close modal on overlay click
-    document.getElementById('modalOverlay').addEventListener('click', (e) => {
-      if (e.target.id === 'modalOverlay') {
-        document.getElementById('modalOverlay').classList.remove('show');
-        document.getElementById('taskInput').value = '';
-      }
-    });
-
-    // Confirm Add Task
-    document.getElementById('confirmBtn').addEventListener('click', () => {
-      const input = document.getElementById('taskInput');
-      const title = input.value.trim();
-
-      if (title) {
-        const taskCard = createTaskCard(title);
-        document.getElementById('taskGrid').appendChild(taskCard);
-
-        // Close modal
-        document.getElementById('modalOverlay').classList.remove('show');
-        input.value = '';
-
-        // Animate card entrance
-        taskCard.style.animation = 'slideUp 0.3s ease';
-      }
-    });
-
-    // Enter key to add task
-    document.getElementById('taskInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        document.getElementById('confirmBtn').click();
-      }
-    });
-
-    // ============================================
-    // TASK INTERACTIONS (Event Delegation)
-    // ============================================
-
-    document.getElementById('taskGrid').addEventListener('click', (e) => {
-      // Checkbox click
-      if (e.target.classList.contains('task-checkbox')) {
-        const taskId = e.target.getAttribute('data-task-id');
-        const card = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
-        const checkbox = e.target;
-
-        if (checkbox.classList.contains('checked')) {
-          checkbox.classList.remove('checked');
-          checkbox.textContent = '';
-          card.classList.remove('completed');
-        } else {
-          checkbox.classList.add('checked');
-          checkbox.textContent = '✓';
-          card.classList.add('completed');
-
-          // Confetti explosion!
-          createConfetti(e.clientX, e.clientY);
-
-          // Success message
-          setTimeout(() => {
-            showTooltip(translations[currentLang].taskCompleted, e.clientX, e.clientY);
-          }, 300);
-        }
-      }
-
-      // Delete button
-      if (e.target.classList.contains('delete') || e.target.closest('.delete')) {
-        const card = e.target.closest('.task-card');
-        card.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => card.remove(), 300);
-      }
-
-      // Edit button
-      if (e.target.classList.contains('edit') || e.target.closest('.edit')) {
-        const card = e.target.closest('.task-card');
-        const titleEl = card.querySelector('.task-title');
-        const newTitle = prompt(translations[currentLang].editTaskPrompt, titleEl.textContent);
-        if (newTitle && newTitle.trim()) {
-          titleEl.textContent = newTitle.trim();
-        }
-      }
-    });
-
-    // ============================================
-    // CONFETTI ANIMATION
-    // ============================================
-
-    function createConfetti(x, y) {
-      const emojis = ['✨', '🎉', '🎊', '⭐', '💫', '🌸', '🎌', '💖'];
-      const count = 15;
-
-      for (let i = 0; i < count; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        confetti.style.left = x + 'px';
-        confetti.style.top = y + 'px';
-        confetti.style.animationDelay = (i * 0.05) + 's';
-        confetti.style.transform = `translateX(${(Math.random() - 0.5) * 200}px)`;
-
-        document.body.appendChild(confetti);
-
-        setTimeout(() => confetti.remove(), 1500);
-      }
-    }
-
-    // ============================================
-    // TOOLTIP
-    // ============================================
-
-    function showTooltip(text, x, y) {
-      const tooltip = document.getElementById('tooltip');
-      tooltip.textContent = text;
-      tooltip.style.left = (x + 10) + 'px';
-      tooltip.style.top = (y - 40) + 'px';
-      tooltip.classList.add('show');
-
-      setTimeout(() => {
-        tooltip.classList.remove('show');
-      }, 2000);
-    }
-
-    // ============================================
-    // SAKURA PETALS ANIMATION
-    // ============================================
-
-    function createSakuraPetal() {
-      const sakura = document.createElement('div');
-      sakura.className = 'sakura';
-      sakura.textContent = '🌸';
-      sakura.style.left = Math.random() * 100 + '%';
-      sakura.style.animationDuration = (Math.random() * 5 + 8) + 's';
-      sakura.style.animationDelay = Math.random() * 5 + 's';
-
-      document.getElementById('sakura-container').appendChild(sakura);
-
-      setTimeout(() => sakura.remove(), 13000);
-    }
-
-    // Create sakura petals periodically
-    setInterval(createSakuraPetal, 3000);
-
-    // Initial petals
-    for (let i = 0; i < 5; i++) {
-      setTimeout(createSakuraPetal, i * 600);
-    }
-
-    // ============================================
-    // PROJECT SWITCHING
-    // ============================================
-
-    document.querySelectorAll('.project-item').forEach(item => {
-      item.addEventListener('click', () => {
-        document.querySelectorAll('.project-item').forEach(p => p.classList.remove('active'));
-        item.classList.add('active');
-      });
-    });
-
-    // ============================================
-    // MOBILE SIDEBAR TOGGLE
-    // ============================================
-
-    const hamburgerMenu = document.getElementById('hamburgerMenu');
-    const sidebar = document.querySelector('.sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-    // Toggle sidebar on hamburger click
-    hamburgerMenu.addEventListener('click', () => {
-      sidebar.classList.toggle('mobile-open');
-      sidebarOverlay.classList.toggle('show');
-      hamburgerMenu.classList.toggle('active');
-    });
-
-    // Close sidebar when overlay is clicked
-    sidebarOverlay.addEventListener('click', () => {
-      sidebar.classList.remove('mobile-open');
-      sidebarOverlay.classList.remove('show');
-      hamburgerMenu.classList.remove('active');
-    });
-
-    // Close sidebar when a project is selected on mobile
-    document.querySelectorAll('.project-item').forEach(item => {
-      item.addEventListener('click', () => {
-        // Close mobile menu after selection
-        if (window.innerWidth <= 768) {
-          sidebar.classList.remove('mobile-open');
-          sidebarOverlay.classList.remove('show');
-          hamburgerMenu.classList.remove('active');
-        }
-      });
-    });
-
-    // ============================================
-    // ADD FADE OUT ANIMATION
-    // ============================================
-
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes fadeOut {
-        from { opacity: 1; transform: scale(1); }
-        to { opacity: 0; transform: scale(0.8); }
-      }
-    `;
-    document.head.appendChild(style);
-
+  });
+});
   </script>
-
 </body>
 </html>
