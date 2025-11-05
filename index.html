@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>✨ Wibu TODO — Anime Task Manager</title>
-  <meta name="description" content="Kawaii anime-themed TODO app with premium Neobrutalism UI. Yatta! 🎌✨">
+  <title id="page-title">✨ Wibu TODO — Anime Task Manager</title>
+  <meta name="description" id="page-description" content="Kawaii anime-themed TODO app with premium Neobrutalism UI. Yatta! 🎌✨">
 
   <!-- Mono Variable Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -344,6 +344,32 @@
 
     .kawaii-avatar:hover {
       transform: rotate(15deg) scale(1.1);
+    }
+
+    .lang-switcher {
+      background: var(--yellow);
+      border: 3px solid var(--black);
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow-small);
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lang-switcher:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 var(--black);
+    }
+
+    .lang-switcher:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--black);
     }
 
     /* ============================================
@@ -867,6 +893,11 @@
         font-size: 20px;
       }
 
+      .lang-switcher {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
       /* Tabs */
       .tabs {
         padding: 0 12px;
@@ -1028,7 +1059,7 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-title">
+        <div class="sidebar-title" data-i18n="sidebarProjects">
           📁 Projects
         </div>
       </div>
@@ -1036,23 +1067,23 @@
       <ul class="project-list" id="projectList">
         <li class="project-item active" data-project="personal">
           <span class="project-icon">🌸</span>
-          <span>Personal</span>
+          <span data-i18n="projectPersonal">Personal</span>
         </li>
         <li class="project-item" data-project="work">
           <span class="project-icon">⚔️</span>
-          <span>Work Quest</span>
+          <span data-i18n="projectWork">Work Quest</span>
         </li>
         <li class="project-item" data-project="study">
           <span class="project-icon">📚</span>
-          <span>Study Mode</span>
+          <span data-i18n="projectStudy">Study Mode</span>
         </li>
         <li class="project-item" data-project="anime">
           <span class="project-icon">🎌</span>
-          <span>Anime List</span>
+          <span data-i18n="projectAnime">Anime List</span>
         </li>
       </ul>
 
-      <button class="add-project-btn">
+      <button class="add-project-btn" data-i18n="addProject">
         ➕ New Project
       </button>
 
@@ -1073,27 +1104,31 @@
             <div class="hamburger-line"></div>
           </div>
           <div class="logo">✨</div>
-          <div class="logo-text">WIBU TODO</div>
+          <div class="logo-text" data-i18n="logo">WIBU TODO</div>
         </div>
         <div class="header-right">
-          <div class="kawaii-avatar" title="Kawaii User-chan">😺</div>
+          <button class="lang-switcher" id="langSwitcher">
+            <span id="langIcon">🇬🇧</span>
+            <span id="langText">EN</span>
+          </button>
+          <div class="kawaii-avatar" data-i18n-title="avatarTitle" title="Kawaii User-chan">😺</div>
         </div>
       </header>
 
       <!-- Tabs -->
       <div class="tabs">
-        <button class="tab active">📋 Tasks</button>
-        <button class="tab">📊 Stats</button>
-        <button class="tab">⚙️ Settings</button>
+        <button class="tab active" data-i18n="tabTasks">📋 Tasks</button>
+        <button class="tab" data-i18n="tabStats">📊 Stats</button>
+        <button class="tab" data-i18n="tabSettings">⚙️ Settings</button>
       </div>
 
       <!-- Task Board -->
       <section class="task-board">
         <div class="board-header">
-          <h2 class="board-title">
+          <h2 class="board-title" data-i18n="boardTitle">
             🎯 Today's Quests
           </h2>
-          <button class="add-task-btn" id="addTaskBtn">
+          <button class="add-task-btn" id="addTaskBtn" data-i18n="addTask">
             ➕ New Task
           </button>
         </div>
@@ -1105,10 +1140,10 @@
               <div class="task-checkbox" data-task-id="1"></div>
               <div class="task-title">Finish watching One Piece episode 1000</div>
             </div>
-            <span class="task-tag tag-progress">In Progress</span>
+            <span class="task-tag tag-progress" data-i18n="tagInProgress">In Progress</span>
             <div class="task-actions">
-              <button class="task-btn edit">✏️ Edit</button>
-              <button class="task-btn delete">🗑️ Delete</button>
+              <button class="task-btn edit" data-i18n="btnEdit">✏️ Edit</button>
+              <button class="task-btn delete" data-i18n="btnDelete">🗑️ Delete</button>
             </div>
           </div>
 
@@ -1117,10 +1152,10 @@
               <div class="task-checkbox" data-task-id="2"></div>
               <div class="task-title">Complete React project for portfolio</div>
             </div>
-            <span class="task-tag tag-urgent">Urgent</span>
+            <span class="task-tag tag-urgent" data-i18n="tagUrgent">Urgent</span>
             <div class="task-actions">
-              <button class="task-btn edit">✏️ Edit</button>
-              <button class="task-btn delete">🗑️ Delete</button>
+              <button class="task-btn edit" data-i18n="btnEdit">✏️ Edit</button>
+              <button class="task-btn delete" data-i18n="btnDelete">🗑️ Delete</button>
             </div>
           </div>
 
@@ -1129,10 +1164,10 @@
               <div class="task-checkbox" data-task-id="3"></div>
               <div class="task-title">Study Japanese vocabulary (50 words)</div>
             </div>
-            <span class="task-tag tag-progress">In Progress</span>
+            <span class="task-tag tag-progress" data-i18n="tagInProgress">In Progress</span>
             <div class="task-actions">
-              <button class="task-btn edit">✏️ Edit</button>
-              <button class="task-btn delete">🗑️ Delete</button>
+              <button class="task-btn edit" data-i18n="btnEdit">✏️ Edit</button>
+              <button class="task-btn delete" data-i18n="btnDelete">🗑️ Delete</button>
             </div>
           </div>
 
@@ -1141,17 +1176,17 @@
               <div class="task-checkbox" data-task-id="4"></div>
               <div class="task-title">Draw chibi character for profile</div>
             </div>
-            <span class="task-tag tag-progress">In Progress</span>
+            <span class="task-tag tag-progress" data-i18n="tagInProgress">In Progress</span>
             <div class="task-actions">
-              <button class="task-btn edit">✏️ Edit</button>
-              <button class="task-btn delete">🗑️ Delete</button>
+              <button class="task-btn edit" data-i18n="btnEdit">✏️ Edit</button>
+              <button class="task-btn delete" data-i18n="btnDelete">🗑️ Delete</button>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Footer -->
-      <footer class="footer">
+      <footer class="footer" data-i18n="footer">
         Yatta! Task cleared 🎌✨ • Made with 💚 by Wibu Devs
       </footer>
 
@@ -1164,13 +1199,13 @@
   <!-- Modal for Adding Tasks -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-      <div class="modal-header">
+      <div class="modal-header" data-i18n="modalTitle">
         ✨ Add New Task
       </div>
-      <input type="text" class="modal-input" id="taskInput" placeholder="Enter task name..." />
+      <input type="text" class="modal-input" id="taskInput" data-i18n-placeholder="modalPlaceholder" placeholder="Enter task name..." />
       <div class="modal-actions">
-        <button class="modal-btn secondary" id="cancelBtn">Cancel</button>
-        <button class="modal-btn primary" id="confirmBtn">Add Task</button>
+        <button class="modal-btn secondary" id="cancelBtn" data-i18n="btnCancel">Cancel</button>
+        <button class="modal-btn primary" id="confirmBtn" data-i18n="btnAddTask">Add Task</button>
       </div>
     </div>
   </div>
@@ -1179,6 +1214,167 @@
     // ============================================
     // 🎌 ANIME TODO APP - JAVASCRIPT
     // ============================================
+
+    // ============================================
+    // TRANSLATIONS / LOCALIZATION
+    // ============================================
+
+    const translations = {
+      en: {
+        // Page meta
+        pageTitle: '✨ Wibu TODO — Anime Task Manager',
+        pageDescription: 'Kawaii anime-themed TODO app with premium Neobrutalism UI. Yatta! 🎌✨',
+
+        // Header
+        logo: 'WIBU TODO',
+        avatarTitle: 'Kawaii User-chan',
+
+        // Sidebar
+        sidebarProjects: '📁 Projects',
+        projectPersonal: 'Personal',
+        projectWork: 'Work Quest',
+        projectStudy: 'Study Mode',
+        projectAnime: 'Anime List',
+        addProject: '➕ New Project',
+
+        // Tabs
+        tabTasks: '📋 Tasks',
+        tabStats: '📊 Stats',
+        tabSettings: '⚙️ Settings',
+
+        // Task Board
+        boardTitle: '🎯 Today\'s Quests',
+        addTask: '➕ New Task',
+
+        // Task Tags
+        tagInProgress: 'In Progress',
+        tagUrgent: 'Urgent',
+        tagDone: 'Done',
+
+        // Buttons
+        btnEdit: '✏️ Edit',
+        btnDelete: '🗑️ Delete',
+        btnCancel: 'Cancel',
+        btnAddTask: 'Add Task',
+
+        // Modal
+        modalTitle: '✨ Add New Task',
+        modalPlaceholder: 'Enter task name...',
+
+        // Messages
+        taskCompleted: 'Yatta! Task completed! 🎉',
+        editTaskPrompt: 'Edit task:',
+
+        // Footer
+        footer: 'Yatta! Task cleared 🎌✨ • Made with 💚 by Wibu Devs'
+      },
+      vi: {
+        // Page meta
+        pageTitle: '✨ Wibu TODO — Quản Lý Công Việc Anime',
+        pageDescription: 'Ứng dụng TODO theo chủ đề anime kawaii với giao diện Neobrutalism cao cấp. Yatta! 🎌✨',
+
+        // Header
+        logo: 'WIBU TODO',
+        avatarTitle: 'Người dùng Kawaii-chan',
+
+        // Sidebar
+        sidebarProjects: '📁 Dự Án',
+        projectPersonal: 'Cá Nhân',
+        projectWork: 'Nhiệm Vụ Công Việc',
+        projectStudy: 'Chế Độ Học Tập',
+        projectAnime: 'Danh Sách Anime',
+        addProject: '➕ Dự Án Mới',
+
+        // Tabs
+        tabTasks: '📋 Công Việc',
+        tabStats: '📊 Thống Kê',
+        tabSettings: '⚙️ Cài Đặt',
+
+        // Task Board
+        boardTitle: '🎯 Nhiệm Vụ Hôm Nay',
+        addTask: '➕ Thêm Công Việc',
+
+        // Task Tags
+        tagInProgress: 'Đang Thực Hiện',
+        tagUrgent: 'Gấp',
+        tagDone: 'Hoàn Thành',
+
+        // Buttons
+        btnEdit: '✏️ Sửa',
+        btnDelete: '🗑️ Xóa',
+        btnCancel: 'Hủy',
+        btnAddTask: 'Thêm Công Việc',
+
+        // Modal
+        modalTitle: '✨ Thêm Công Việc Mới',
+        modalPlaceholder: 'Nhập tên công việc...',
+
+        // Messages
+        taskCompleted: 'Yatta! Hoàn thành công việc! 🎉',
+        editTaskPrompt: 'Sửa công việc:',
+
+        // Footer
+        footer: 'Yatta! Nhiệm vụ hoàn thành 🎌✨ • Được tạo với 💚 bởi Wibu Devs'
+      }
+    };
+
+    let currentLang = localStorage.getItem('language') || 'en';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('language', lang);
+
+      // Update page title and meta
+      document.getElementById('page-title').textContent = translations[lang].pageTitle;
+      document.getElementById('page-description').setAttribute('content', translations[lang].pageDescription);
+      document.documentElement.setAttribute('lang', lang);
+
+      // Update all elements with data-i18n attribute
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+          element.textContent = translations[lang][key];
+        }
+      });
+
+      // Update elements with data-i18n-placeholder attribute
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        if (translations[lang][key]) {
+          element.setAttribute('placeholder', translations[lang][key]);
+        }
+      });
+
+      // Update elements with data-i18n-title attribute
+      document.querySelectorAll('[data-i18n-title]').forEach(element => {
+        const key = element.getAttribute('data-i18n-title');
+        if (translations[lang][key]) {
+          element.setAttribute('title', translations[lang][key]);
+        }
+      });
+
+      // Update language switcher
+      const langIcon = document.getElementById('langIcon');
+      const langText = document.getElementById('langText');
+      if (lang === 'vi') {
+        langIcon.textContent = '🇻🇳';
+        langText.textContent = 'VI';
+      } else {
+        langIcon.textContent = '🇬🇧';
+        langText.textContent = 'EN';
+      }
+    }
+
+    // Initialize language on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      setLanguage(currentLang);
+    });
+
+    // Language switcher event
+    document.getElementById('langSwitcher').addEventListener('click', () => {
+      const newLang = currentLang === 'en' ? 'vi' : 'en';
+      setLanguage(newLang);
+    });
 
     let taskIdCounter = 5;
 
@@ -1198,10 +1394,10 @@
           <div class="task-checkbox" data-task-id="${id}"></div>
           <div class="task-title">${title}</div>
         </div>
-        <span class="task-tag tag-progress">In Progress</span>
+        <span class="task-tag tag-progress" data-i18n="tagInProgress">${translations[currentLang].tagInProgress}</span>
         <div class="task-actions">
-          <button class="task-btn edit">✏️ Edit</button>
-          <button class="task-btn delete">🗑️ Delete</button>
+          <button class="task-btn edit" data-i18n="btnEdit">${translations[currentLang].btnEdit}</button>
+          <button class="task-btn delete" data-i18n="btnDelete">${translations[currentLang].btnDelete}</button>
         </div>
       `;
 
@@ -1282,7 +1478,7 @@
 
           // Success message
           setTimeout(() => {
-            showTooltip('Yatta! Task completed! 🎉', e.clientX, e.clientY);
+            showTooltip(translations[currentLang].taskCompleted, e.clientX, e.clientY);
           }, 300);
         }
       }
@@ -1298,7 +1494,7 @@
       if (e.target.classList.contains('edit') || e.target.closest('.edit')) {
         const card = e.target.closest('.task-card');
         const titleEl = card.querySelector('.task-title');
-        const newTitle = prompt('Edit task:', titleEl.textContent);
+        const newTitle = prompt(translations[currentLang].editTaskPrompt, titleEl.textContent);
         if (newTitle && newTitle.trim()) {
           titleEl.textContent = newTitle.trim();
         }
