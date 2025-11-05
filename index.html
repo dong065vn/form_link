@@ -7,377 +7,1300 @@
   <meta name="description" content="Form tổng hợp link theo 4 chương, hỗ trợ dán nhiều link, tự tách URL, xem trước và xuất .txt. Có Dark/Light mode và thông báo (toast). Không auto-save."/>
   <meta property="og:title" content="LinkCollector — Tổng hợp link theo chương"/>
   <meta property="og:description" content="Dán nhiều link, tự tách URL, xem trước & xuất .txt. Dark/Light mode. Không auto-save."/>
+
   <style>
-    :root{
-      /* LIGHT THEME */
-      --bg:#f6f7fb; --text:#0b1220; --muted:#5b6472;
-      --card:#ffffff; --input:#f3f5f9; --border:#e3e6ee;
-      --accent:#2563eb; --danger:#dc2626; --shadow:0 10px 24px rgba(11,18,32,.08);
+    /* ===== DESIGN SYSTEM ===== */
+    /* Modern Notion × Linear × Apple HIG inspired */
+
+    :root {
+      /* LIGHT THEME - Soft neutral palette */
+      --bg-primary: #fafaf9;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f5f5f4;
+      --bg-elevated: #ffffff;
+
+      --text-primary: #0c0a09;
+      --text-secondary: #57534e;
+      --text-tertiary: #a8a29e;
+      --text-inverse: #ffffff;
+
+      --border-subtle: #e7e5e4;
+      --border-default: #d6d3d1;
+      --border-strong: #a8a29e;
+
+      /* Refined emerald accent */
+      --accent-primary: #059669;
+      --accent-hover: #047857;
+      --accent-subtle: #d1fae5;
+      --accent-bg: #ecfdf5;
+
+      /* Feedback colors - calm & refined */
+      --success: #059669;
+      --success-bg: #d1fae5;
+      --warning: #d97706;
+      --warning-bg: #fed7aa;
+      --error: #dc2626;
+      --error-bg: #fecaca;
+
+      /* Elevation system */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      --shadow-md: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+
+      /* Radius scale */
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      --radius-2xl: 20px;
+
+      /* Spacing scale */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 12px;
+      --space-lg: 16px;
+      --space-xl: 24px;
+      --space-2xl: 32px;
+      --space-3xl: 48px;
     }
-    :root[data-theme="dark"]{
-      /* DARK THEME */
-      --bg:#0a0f1a; --text:#e6edf3; --muted:#93a4b6;
-      --card:#152133; --input:#0b1220; --border:#2a3a4d;
-      --accent:#3b82f6; --danger:#ef4444; --shadow:0 10px 24px rgba(0,0,0,.28);
+
+    :root[data-theme="dark"] {
+      /* DARK THEME - Calm & refined */
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #171717;
+      --bg-elevated: #262626;
+
+      --text-primary: #fafafa;
+      --text-secondary: #a3a3a3;
+      --text-tertiary: #737373;
+      --text-inverse: #0a0a0a;
+
+      --border-subtle: #262626;
+      --border-default: #404040;
+      --border-strong: #525252;
+
+      --accent-primary: #10b981;
+      --accent-hover: #34d399;
+      --accent-subtle: #064e3b;
+      --accent-bg: #022c22;
+
+      --success: #10b981;
+      --success-bg: #064e3b;
+      --warning: #f59e0b;
+      --warning-bg: #451a03;
+      --error: #ef4444;
+      --error-bg: #450a0a;
+
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 2px 4px -1px rgba(0, 0, 0, 0.4), 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
     }
 
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body{font-family:Segoe UI, Roboto, system-ui, sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
-
-    .container{max-width:1200px;margin:28px auto;padding:0 16px}
-    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7c3aed)}
-    h1{font-size:22px}
-    .sub{color:var(--muted);margin-bottom:16px}
-
-    .toolbar{display:flex;align-items:center;gap:10px}
-    .theme-toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--input);padding:8px 10px;border-radius:10px;cursor:pointer}
-
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px}
-    .card h2{font-size:18px;margin-bottom:10px}
-    .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
-
-    .row{margin-bottom:12px}
-    input[type="text"], input[type="url"], textarea{
-      width:100%;background:var(--input);color:var(--text);
-      border:1px solid var(--border);border-radius:14px;padding:12px;outline:none
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    textarea{min-height:84px;resize:vertical}
-    input::placeholder, textarea::placeholder{color:var(--muted)}
-    input:focus, textarea:focus{border-color:var(--accent)}
 
-    .list{margin-top:6px}
-    .item{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .remove{min-width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:transparent;border:1px solid var(--border);color:var(--danger);cursor:pointer}
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
 
-    .btn{height:38px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--input);color:var(--text);cursor:pointer}
-    .btn:hover{border-color:var(--accent)}
-    .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-    .btn.danger{background:#fee2e2;border-color:#fecaca;color:#991b1b}
-    :root[data-theme="dark"] .btn.danger{background:#361a1a;border-color:#732626;color:#ff9c9c}
-    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-    .preview{background:var(--input);border:1px dashed var(--border);border-radius:16px;padding:12px;margin-top:10px;white-space:pre-wrap}
-    footer{text-align:center;color:var(--muted);margin:18px 0}
-    .options{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:14px;margin-top:8px}
-    .options input{width:auto}
+    /* ===== TYPOGRAPHY ===== */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 600;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+    }
 
-    /* Toast */
-    .toast-wrap{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:9999}
-    .toast{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);color:var(--text);padding:10px 12px;border-radius:12px;min-width:220px}
+    h1 { font-size: 28px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 16px; }
 
-    /* Spinner */
-    .spinner{width:16px;height:16px;border-radius:999px;border:2px solid var(--border);border-top-color:var(--accent);animation:spin 1s linear infinite;display:inline-block}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    /* ===== LAYOUT ===== */
+    .app-container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 240px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-lg);
+      gap: var(--space-xl);
+      flex-shrink: 0;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, var(--accent-primary), #0d9488);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-text p {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      transform: scale(1.01);
+    }
+
+    .nav-item.active {
+      background: var(--accent-subtle);
+      color: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    .nav-item-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: var(--space-lg);
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-secondary);
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--border-default);
+      transform: scale(1.01);
+    }
+
+    .theme-icon {
+      font-size: 16px;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ===== TOP BAR ===== */
+    .top-bar {
+      height: 64px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 var(--space-2xl);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-xl);
+      flex-shrink: 0;
+    }
+
+    .top-bar-left h2 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .top-bar-subtitle {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .top-bar-actions {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    /* ===== WORKSPACE ===== */
+    .workspace {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-2xl);
+    }
+
+    .workspace::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .workspace::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .workspace::-webkit-scrollbar-thumb {
+      background: var(--border-default);
+      border-radius: 999px;
+    }
+
+    .workspace::-webkit-scrollbar-thumb:hover {
+      background: var(--border-strong);
+    }
+
+    .section {
+      margin-bottom: var(--space-3xl);
+    }
+
+    .section-header {
+      margin-bottom: var(--space-lg);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .section-description {
+      font-size: 13px;
+      color: var(--text-tertiary);
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--space-xl);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-default);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .chapter-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-sm);
+      background: var(--accent-subtle);
+      color: var(--accent-primary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: var(--space-lg);
+    }
+
+    /* ===== FORM CONTROLS ===== */
+    .form-group {
+      margin-bottom: var(--space-lg);
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-sm);
+    }
+
+    input[type="text"],
+    input[type="url"],
+    textarea {
+      width: 100%;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: var(--space-md);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    input:hover,
+    textarea:hover {
+      border-color: var(--border-default);
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent-primary);
+      background: var(--bg-secondary);
+      box-shadow: 0 0 0 3px var(--accent-bg);
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      height: 36px;
+      padding: 0 var(--space-lg);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      border-color: var(--border-default);
+      transform: scale(1.01);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn:active {
+      transform: scale(0.99);
+    }
+
+    .btn-primary {
+      background: var(--accent-primary);
+      color: var(--text-inverse);
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-danger {
+      background: var(--error-bg);
+      color: var(--error);
+      border-color: var(--error-bg);
+    }
+
+    .btn-danger:hover {
+      background: var(--error);
+      color: var(--text-inverse);
+      border-color: var(--error);
+    }
+
+    .btn-icon {
+      width: 36px;
+      padding: 0;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    /* ===== LINK ITEMS ===== */
+    .link-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      animation: slideIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .link-item input {
+      flex: 1;
+    }
+
+    .btn-remove {
+      min-width: 36px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-tertiary);
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-remove:hover {
+      background: var(--error-bg);
+      color: var(--error);
+      border-color: var(--error-bg);
+      transform: scale(1.05);
+    }
+
+    /* ===== CHECKBOX ===== */
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--accent-primary);
+    }
+
+    /* ===== PREVIEW ===== */
+    .preview-container {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      margin-top: var(--space-lg);
+      min-height: 200px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: var(--text-secondary);
+    }
+
+    .preview-container:empty::before {
+      content: 'Nhấn "Xem trước" để hiển thị kết quả...';
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      bottom: var(--space-xl);
+      right: var(--space-xl);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md) var(--space-lg);
+      box-shadow: var(--shadow-xl);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 280px;
+      max-width: 420px;
+      pointer-events: auto;
+      animation: toastSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    @keyframes toastSlide {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .toast-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toast.success {
+      border-color: var(--success);
+      background: var(--success-bg);
+    }
+
+    .toast.success .toast-icon {
+      color: var(--success);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: var(--space-3xl);
+      color: var(--text-tertiary);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: var(--space-lg);
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+    }
+
+    /* ===== DRAG & DROP STATES ===== */
+    .card.drag-over {
+      border-color: var(--accent-primary);
+      border-style: dashed;
+      border-width: 2px;
+      background: var(--accent-bg);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      padding: var(--space-xl) var(--space-2xl);
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 13px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-secondary);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+
+      .top-bar {
+        padding: 0 var(--space-lg);
+      }
+
+      .workspace {
+        padding: var(--space-lg);
+      }
+
+      .chapters-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-group {
+        width: 100%;
+      }
+
+      .btn-group .btn {
+        flex: 1;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">🔗</div>
+        <div class="brand-text">
           <h1>LinkCollector</h1>
-          <div class="sub">Dán nhiều link, tự tách URL, xem trước & xuất </div>
+          <p>v2.0</p>
         </div>
       </div>
-      <div class="toolbar">
-        <button class="theme-toggle" id="themeBtn" aria-label="Đổi giao diện">🌙 <span id="themeLabel">Dark</span></button>
-      </div>
-    </header>
 
-    <div class="card">
-      <h2>Thiết lập chung</h2>
-      <div class="row"><input id="filename" type="text" placeholder="Tên file (vd: tong_hop_link)"></div>
-      <div class="row"><input id="docTitle" type="text" placeholder="Tiêu đề tài liệu"></div>
-      <div class="row"><textarea id="docNote" placeholder="Ghi chú (tuỳ chọn)"></textarea></div>
-      <div class="options">
-        <label><input type="checkbox" id="dedupe" checked> Bỏ trùng link</label>
-        <label><input type="checkbox" id="autosplit" checked> Tự tách link khi xuất/preview</label>
+      <nav class="nav-section">
+        <div class="nav-item active" onclick="scrollToSection('workspace')">
+          <span class="nav-item-icon">📋</span>
+          <span>Workspace</span>
+        </div>
+        <div class="nav-item" onclick="scrollToSection('settings')">
+          <span class="nav-item-icon">⚙️</span>
+          <span>Thiết lập</span>
+        </div>
+        <div class="nav-item" onclick="scrollToSection('chapters')">
+          <span class="nav-item-icon">📚</span>
+          <span>Chương</span>
+        </div>
+        <div class="nav-item" onclick="scrollToSection('results')">
+          <span class="nav-item-icon">📊</span>
+          <span>Kết quả</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">
+          <span>
+            <span class="theme-icon" id="themeIcon">🌙</span>
+            <span id="themeLabel">Dark mode</span>
+          </span>
+        </button>
       </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <!-- TOP BAR -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <h2>Link Management</h2>
+          <p class="top-bar-subtitle">Tổng hợp và quản lý link theo 4 chương</p>
+        </div>
+        <div class="top-bar-actions">
+          <button class="btn" onclick="generatePreview()">
+            <span>👁️</span>
+            <span>Xem trước</span>
+          </button>
+          <button class="btn" onclick="copyToClipboard()">
+            <span>📋</span>
+            <span>Copy</span>
+          </button>
+          <button class="btn btn-primary" onclick="downloadTxt()">
+            <span>⬇️</span>
+            <span>Xuất .txt</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- WORKSPACE -->
+      <main class="workspace" id="workspace">
+        <!-- SETTINGS SECTION -->
+        <section class="section" id="settings">
+          <div class="section-header">
+            <h3 class="section-title">Thiết lập chung</h3>
+            <p class="section-description">Cấu hình thông tin tài liệu và tùy chọn xuất file</p>
+          </div>
+
+          <div class="card">
+            <div class="form-group">
+              <label class="form-label">Tên file</label>
+              <input id="filename" type="text" placeholder="vd: tong_hop_link">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Tiêu đề tài liệu</label>
+              <input id="docTitle" type="text" placeholder="Nhập tiêu đề cho tài liệu">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ghi chú (tuỳ chọn)</label>
+              <textarea id="docNote" placeholder="Thêm ghi chú hoặc mô tả cho tài liệu..."></textarea>
+            </div>
+
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="dedupe" checked>
+                <span>Bỏ trùng link</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="autosplit" checked>
+                <span>Tự tách link khi xuất/preview</span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- CHAPTERS SECTION -->
+        <section class="section" id="chapters">
+          <div class="section-header">
+            <h3 class="section-title">Chương</h3>
+            <p class="section-description">Tổ chức link theo 4 chương khác nhau</p>
+          </div>
+
+          <div class="chapters-grid">
+            <!-- CHAPTER 1 -->
+            <div class="card" data-chapter="1">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span class="chapter-badge">1</span>
+                  Chương 1
+                </h3>
+              </div>
+
+              <div class="btn-group">
+                <button class="btn" onclick="addLink(1)">+ Thêm link</button>
+                <button class="btn" onclick="bulkPaste(1)">📥 Dán nhiều</button>
+                <button class="btn" onclick="pickFile(1)">📁 Nhập file</button>
+              </div>
+
+              <div id="list-1" class="link-list"></div>
+            </div>
+
+            <!-- CHAPTER 2 -->
+            <div class="card" data-chapter="2">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span class="chapter-badge">2</span>
+                  Chương 2
+                </h3>
+              </div>
+
+              <div class="btn-group">
+                <button class="btn" onclick="addLink(2)">+ Thêm link</button>
+                <button class="btn" onclick="bulkPaste(2)">📥 Dán nhiều</button>
+                <button class="btn" onclick="pickFile(2)">📁 Nhập file</button>
+              </div>
+
+              <div id="list-2" class="link-list"></div>
+            </div>
+
+            <!-- CHAPTER 3 -->
+            <div class="card" data-chapter="3">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span class="chapter-badge">3</span>
+                  Chương 3
+                </h3>
+              </div>
+
+              <div class="btn-group">
+                <button class="btn" onclick="addLink(3)">+ Thêm link</button>
+                <button class="btn" onclick="bulkPaste(3)">📥 Dán nhiều</button>
+                <button class="btn" onclick="pickFile(3)">📁 Nhập file</button>
+              </div>
+
+              <div id="list-3" class="link-list"></div>
+            </div>
+
+            <!-- CHAPTER 4 -->
+            <div class="card" data-chapter="4">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <span class="chapter-badge">4</span>
+                  Chương 4
+                </h3>
+              </div>
+
+              <div class="btn-group">
+                <button class="btn" onclick="addLink(4)">+ Thêm link</button>
+                <button class="btn" onclick="bulkPaste(4)">📥 Dán nhiều</button>
+                <button class="btn" onclick="pickFile(4)">📁 Nhập file</button>
+              </div>
+
+              <div id="list-4" class="link-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RESULTS SECTION -->
+        <section class="section" id="results">
+          <div class="section-header">
+            <h3 class="section-title">Kết quả</h3>
+            <p class="section-description">Xem trước và xuất nội dung đã tổng hợp</p>
+          </div>
+
+          <div class="card">
+            <div class="btn-group">
+              <button class="btn" onclick="generatePreview()">👁️ Xem trước</button>
+              <button class="btn btn-primary" onclick="downloadTxt()">⬇️ Xuất .txt</button>
+              <button class="btn" onclick="copyToClipboard()">📋 Copy nội dung</button>
+              <button class="btn btn-danger" onclick="clearAll()">🗑️ Xoá tất cả</button>
+            </div>
+
+            <div id="preview" class="preview-container"></div>
+          </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+          © 2025 LinkCollector • Designed with clarity & purpose • by ĐÔNG
+        </footer>
+      </main>
     </div>
-
-    <div class="grid" style="margin-top:18px">
-      <div class="card" data-chapter="1">
-        <h2>Chương 1</h2>
-        <div class="actions">
-          <button class="btn" onclick="addLink(1)">+ Thêm link</button>
-          <button class="btn" onclick="bulkPaste(1)">Dán nhiều link…</button>
-          <button class="btn" onclick="pickFile(1)">Nhập file…</button>
-        </div>
-        <div id="list-1" class="list"></div>
-      </div>
-
-      <div class="card" data-chapter="2">
-        <h2>Chương 2</h2>
-        <div class="actions">
-          <button class="btn" onclick="addLink(2)">+ Thêm link</button>
-          <button class="btn" onclick="bulkPaste(2)">Dán nhiều link…</button>
-          <button class="btn" onclick="pickFile(2)">Nhập file…</button>
-        </div>
-        <div id="list-2" class="list"></div>
-      </div>
-
-      <div class="card" data-chapter="3">
-        <h2>Chương 3</h2>
-        <div class="actions">
-          <button class="btn" onclick="addLink(3)">+ Thêm link</button>
-          <button class="btn" onclick="bulkPaste(3)">Dán nhiều link…</button>
-          <button class="btn" onclick="pickFile(3)">Nhập file…</button>
-        </div>
-        <div id="list-3" class="list"></div>
-      </div>
-
-      <div class="card" data-chapter="4">
-        <h2>Chương 4</h2>
-        <div class="actions">
-          <button class="btn" onclick="addLink(4)">+ Thêm link</button>
-          <button class="btn" onclick="bulkPaste(4)">Dán nhiều link…</button>
-          <button class="btn" onclick="pickFile(4)">Nhập file…</button>
-        </div>
-        <div id="list-4" class="list"></div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:18px">
-      <h2>Kết quả</h2>
-      <div class="actions">
-        <button class="btn" onclick="generatePreview()">Xem trước</button>
-        <button class="btn primary" onclick="downloadTxt()">Xuất .txt</button>
-        <button class="btn" onclick="copyToClipboard()">Copy nội dung</button>
-        <button class="btn danger" onclick="clearAll()">Xoá tất cả</button>
-      </div>
-      <div id="preview" class="preview"></div>
-    </div>
-
-    <footer>© 2025 LinkCollector • Publish by ĐÔNG</footer>
   </div>
 
-  <!-- Toast container -->
-  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastWrap" aria-live="polite"></div>
 
   <script>
-
-    // ===== THEME TOGGLE (no auto-save) =====
+    // ===== THEME SYSTEM =====
     const root = document.documentElement;
-    const themeBtn = document.getElementById('themeBtn');
-    const themeLabel = document.getElementById('themeLabel');
-    let dark = true; // default dark
-    function applyTheme(){ root.setAttribute('data-theme', dark? 'dark':'light'); themeLabel.textContent = dark ? 'Dark' : 'Light'; themeBtn.firstChild.textContent = dark ? '🌙' : '☀️'; }
-    themeBtn.addEventListener('click', ()=>{ dark = !dark; applyTheme(); });
+    let dark = true; // default dark mode
+
+    function toggleTheme() {
+      dark = !dark;
+      applyTheme();
+    }
+
+    function applyTheme() {
+      root.setAttribute('data-theme', dark ? 'dark' : 'light');
+      document.getElementById('themeLabel').textContent = dark ? 'Dark mode' : 'Light mode';
+      document.getElementById('themeIcon').textContent = dark ? '🌙' : '☀️';
+    }
+
     applyTheme();
 
-    // ===== TOAST =====
-    function toast(msg){
-      const box = document.createElement('div'); box.className='toast'; box.textContent=msg;
-      const wrap=document.getElementById('toastWrap'); wrap.appendChild(box);
-      setTimeout(()=>{ box.style.opacity='0'; box.style.transition='opacity .4s'; }, 2200);
-      setTimeout(()=> box.remove(), 2600);
+    // ===== TOAST SYSTEM =====
+    function toast(msg, type = 'default') {
+      const container = document.getElementById('toastWrap');
+      const toastEl = document.createElement('div');
+      toastEl.className = `toast ${type}`;
+
+      const icon = type === 'success' ? '✓' : 'ℹ';
+      toastEl.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span>${msg}</span>
+      `;
+
+      container.appendChild(toastEl);
+
+      setTimeout(() => {
+        toastEl.style.opacity = '0';
+        toastEl.style.transform = 'translateX(100%)';
+        toastEl.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      }, 2500);
+
+      setTimeout(() => toastEl.remove(), 2800);
     }
 
-    // Mở hộp thoại chọn file & đọc nội dung (text)
-function pickFile(ch){
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.txt,.csv,text/plain'; // có thể mở rộng nếu cần
-  input.onchange = async (e)=>{
-    const file = e.target.files?.[0];
-    if(!file) return;
-    try{
-      const text = await file.text();
-      // Tách link từ nội dung file
-      const links = extractLinks(text);
-      if(links.length === 0){
-        toast('Không phát hiện URL trong file');
-        return;
+    // ===== UTILITY FUNCTIONS =====
+    function nowStamp() {
+      const d = new Date();
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;
+    }
+
+    function debounce(fn, wait = 250) {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), wait);
+      };
+    }
+
+    function scrollToSection(id) {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Update active nav item
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+    }
+
+    // ===== URL EXTRACTION =====
+    function extractLinks(text) {
+      if (!text) return [];
+      const urls = [];
+
+      // http/https URLs
+      const r1 = /(https?:\/\/[^\s"'<>]+)/gi;
+      let m;
+      while ((m = r1.exec(text)) !== null) {
+        urls.push(m[1].replace(/[),.;]+$/, ''));
       }
-      // Thêm vào chương tương ứng
-      const list = document.getElementById(`list-${ch}`);
-      links.forEach((u)=>{
-        const row = createRow(ch);
-        row.querySelector('input').value = u;
-        list.appendChild(row);
-      });
-      toast(`Đã nhập ${links.length} link từ file`);
-    }catch(err){
-      console.error(err);
-      toast('Lỗi đọc file');
-    }
-  };
-  input.click();
-}
-    // ===== CORE =====
-    function nowStamp(){const d=new Date();const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`}
 
-    function createRow(ch){
-  const wrap=document.createElement('div');
-  wrap.className='item';
-  wrap.innerHTML=`<input type="url" placeholder="Dán link hoặc đoạn có chứa link…" inputmode="url">
-                  <button class="remove" title="Xoá">✕</button>`;
-  const input = wrap.querySelector("input");
-  attachAutoFilter(input, ch);    // 👈 gắn lọc tự động
-  wrap.querySelector('.remove').onclick=()=>wrap.remove();
-  return wrap;
-}
-
-
-    function addLink(ch){
-  document.getElementById(`list-${ch}`).appendChild(createRow(ch));
-}
-
-//filter
-function attachAutoFilter(input, ch){
-  // Xử lý dán: nếu nhiều link → tách ra nhiều ô
-  input.addEventListener('paste', (e)=>{
-    const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
-    const links = extractLinks(text);
-    if(links.length > 1){
-      e.preventDefault();
-      input.value = links[0];
-      for(let i=1;i<links.length;i++){
-        const row=createRow(ch);
-        row.querySelector('input').value=links[i];
-        document.getElementById(`list-${ch}`).appendChild(row);
+      // www. URLs
+      const r2 = /(^|\s)(www\.[^\s"'<>]+)/gi;
+      let n;
+      while ((n = r2.exec(text)) !== null) {
+        let u = n[2].replace(/[),.;]+$/, '');
+        if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+        urls.push(u);
       }
-    }
-  });
 
-  // Lọc ngay khi gõ (debounced)
-  const run = debounce(()=>{
-    const text = input.value.trim();
-    if(!text) return;
-    const links = extractLinks(text);
-    if(links.length === 0){
-      // chưa nhận ra URL hợp lệ → để user tiếp tục gõ
-      return;
-    }
-    // giữ link đầu tiên
-    input.value = links[0];
-    // link còn lại → tạo thêm ô
-    for(let i=1;i<links.length;i++){
-      const row=createRow(ch);
-      row.querySelector('input').value=links[i];
-      document.getElementById(`list-${ch}`).appendChild(row);
-    }
-  }, 250);
+      // Bare domain URLs
+      const r3 = /\b([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[a-zA-Z0-9._\-\/?=&%#]*)?)/gi;
+      let k;
+      while ((k = r3.exec(text)) !== null) {
+        let u = k[1].replace(/[),.;]+$/, '');
+        if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+        urls.push(u);
+      }
 
-  input.addEventListener('input', run);
-}
-
-    // Bóc tách URL: http/https, www., domain trần (example.com/path)
-    function extractLinks(text){
-      if(!text) return [];
-      const urls=[];
-      // http/https
-      const r1=/(https?:\/\/[^\s"'<>]+)/gi; let m; while((m=r1.exec(text))!==null){urls.push(m[1].replace(/[),.;]+$/,''))}
-      // www.
-      const r2=/(^|\s)(www\.[^\s"'<>]+)/gi; let n; while((n=r2.exec(text))!==null){let u=n[2].replace(/[),.;]+$/,''); if(!/^https?:\/\//i.test(u)) u='https://'+u; urls.push(u)}
-      // domain trần
-      const r3=/\b([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[a-zA-Z0-9._\-\/?=&%#]*)?)/gi; let k; while((k=r3.exec(text))!==null){let u=k[1].replace(/[),.;]+$/,''); if(!/^https?:\/\//i.test(u)) u='https://'+u; urls.push(u)}
       return urls;
     }
-// gõ mượt
-function debounce(fn, wait=250){
-  let t;
-  return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), wait); };
-}
 
-    function bulkPaste(ch){
-  const text=prompt('Dán danh sách link hoặc đoạn văn có chứa link:');
-  if(!text) return;
-  const arr=extractLinks(text);
-  arr.forEach(v=>{
-    const row=createRow(ch);
-    row.querySelector('input').value=v;
-    document.getElementById(`list-${ch}`).appendChild(row);
-  });
-  toast(arr.length? `Đã thêm ${arr.length} link` : 'Không phát hiện URL hợp lệ');
-}
+    // ===== LINK MANAGEMENT =====
+    function createRow(ch) {
+      const wrap = document.createElement('div');
+      wrap.className = 'link-item';
+      wrap.innerHTML = `
+        <input type="url" placeholder="Dán link hoặc đoạn có chứa link..." inputmode="url">
+        <button class="btn-remove" title="Xoá">✕</button>
+      `;
 
-    function collectRaw(ch){return[...document.querySelectorAll(`#list-${ch} input[type=url]`)].map(i=>i.value).filter(Boolean)}
+      const input = wrap.querySelector('input');
+      attachAutoFilter(input, ch);
+      wrap.querySelector('.btn-remove').onclick = () => {
+        wrap.style.opacity = '0';
+        wrap.style.transform = 'translateY(-8px)';
+        setTimeout(() => wrap.remove(), 200);
+      };
 
-    function getLinks(ch){
-      const autosplit=document.getElementById('autosplit').checked;
-      let items = collectRaw(ch).map(s=>s.trim()).filter(Boolean);
-      if(autosplit){ items = items.flatMap(v=>extractLinks(v)); }
-      if(document.getElementById('dedupe').checked){
-        const seen=new Set(); items = items.filter(v=>{const k=v.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true;});
+      return wrap;
+    }
+
+    function attachAutoFilter(input, ch) {
+      // Handle paste event
+      input.addEventListener('paste', (e) => {
+        const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        const links = extractLinks(text);
+
+        if (links.length > 1) {
+          e.preventDefault();
+          input.value = links[0];
+
+          for (let i = 1; i < links.length; i++) {
+            const row = createRow(ch);
+            row.querySelector('input').value = links[i];
+            document.getElementById(`list-${ch}`).appendChild(row);
+          }
+
+          toast(`Đã tách ${links.length} link`, 'success');
+        }
+      });
+
+      // Auto-filter on input (debounced)
+      const run = debounce(() => {
+        const text = input.value.trim();
+        if (!text) return;
+
+        const links = extractLinks(text);
+        if (links.length === 0) return;
+
+        input.value = links[0];
+
+        for (let i = 1; i < links.length; i++) {
+          const row = createRow(ch);
+          row.querySelector('input').value = links[i];
+          document.getElementById(`list-${ch}`).appendChild(row);
+        }
+      }, 250);
+
+      input.addEventListener('input', run);
+    }
+
+    function addLink(ch) {
+      document.getElementById(`list-${ch}`).appendChild(createRow(ch));
+    }
+
+    function bulkPaste(ch) {
+      const text = prompt('Dán danh sách link hoặc đoạn văn có chứa link:');
+      if (!text) return;
+
+      const arr = extractLinks(text);
+      arr.forEach(v => {
+        const row = createRow(ch);
+        row.querySelector('input').value = v;
+        document.getElementById(`list-${ch}`).appendChild(row);
+      });
+
+      toast(arr.length ? `Đã thêm ${arr.length} link` : 'Không phát hiện URL hợp lệ', arr.length ? 'success' : 'default');
+    }
+
+    function pickFile(ch) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.txt,.csv,text/plain';
+      input.onchange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+          const text = await file.text();
+          const links = extractLinks(text);
+
+          if (links.length === 0) {
+            toast('Không phát hiện URL trong file');
+            return;
+          }
+
+          const list = document.getElementById(`list-${ch}`);
+          links.forEach(u => {
+            const row = createRow(ch);
+            row.querySelector('input').value = u;
+            list.appendChild(row);
+          });
+
+          toast(`Đã nhập ${links.length} link từ file`, 'success');
+        } catch (err) {
+          console.error(err);
+          toast('Lỗi đọc file');
+        }
+      };
+      input.click();
+    }
+
+    // ===== DATA COLLECTION =====
+    function collectRaw(ch) {
+      return [...document.querySelectorAll(`#list-${ch} input[type=url]`)]
+        .map(i => i.value)
+        .filter(Boolean);
+    }
+
+    function getLinks(ch) {
+      const autosplit = document.getElementById('autosplit').checked;
+      let items = collectRaw(ch).map(s => s.trim()).filter(Boolean);
+
+      if (autosplit) {
+        items = items.flatMap(v => extractLinks(v));
       }
+
+      if (document.getElementById('dedupe').checked) {
+        const seen = new Set();
+        items = items.filter(v => {
+          const k = v.toLowerCase();
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+      }
+
       return items;
     }
 
-    function generateText(){
-      const title=document.getElementById('docTitle').value.trim();
-      const note=document.getElementById('docNote').value.trim();
-      const header=[title?`# ${title}`:'# Tổng hợp link chương 1–4', note?`> ${note}`:'', `Tạo lúc: ${new Date().toLocaleString()}`, ''].filter(Boolean).join('\n');
-      const content=[1,2,3,4].map(ch=>{const links=getLinks(ch); if(!links.length) return null; const items=links.map((l,i)=>`  ${i+1}. ${l}`).join('\n'); return `Chương ${ch}:\n${items}`}).filter(Boolean).join('\n\n');
-      return header+(content?content:'— (Chưa có link)');
+    function generateText() {
+      const title = document.getElementById('docTitle').value.trim();
+      const note = document.getElementById('docNote').value.trim();
+
+      const header = [
+        title ? `# ${title}` : '# Tổng hợp link chương 1–4',
+        note ? `> ${note}` : '',
+        `Tạo lúc: ${new Date().toLocaleString()}`,
+        ''
+      ].filter(Boolean).join('\n');
+
+      const content = [1, 2, 3, 4].map(ch => {
+        const links = getLinks(ch);
+        if (!links.length) return null;
+        const items = links.map((l, i) => `  ${i + 1}. ${l}`).join('\n');
+        return `Chương ${ch}:\n${items}`;
+      }).filter(Boolean).join('\n\n');
+
+      return header + (content ? content : '— (Chưa có link)');
     }
 
-    function generatePreview(){ document.getElementById('preview').textContent = generateText(); toast('Đã cập nhật xem trước'); }
-
-    function downloadTxt(){
-      const blob=new Blob([generateText()],{type:'text/plain;charset=utf-8'});
-      const a=document.createElement('a');
-      const fname=(document.getElementById('filename').value.trim()||`tong_hop_link_${nowStamp()}`)+'.txt';
-      a.href=URL.createObjectURL(blob); a.download=fname; a.click();
-      URL.revokeObjectURL(a.href); toast('Đã xuất file .txt');
+    // ===== EXPORT FUNCTIONS =====
+    function generatePreview() {
+      document.getElementById('preview').textContent = generateText();
+      toast('Đã cập nhật xem trước', 'success');
     }
 
-    function copyToClipboard(){
-      navigator.clipboard.writeText(generateText()).then(()=>toast('Đã copy nội dung')).catch(()=>{
-        const ta=document.createElement('textarea'); ta.value=generateText(); document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Đã copy nội dung');
+    function downloadTxt() {
+      const blob = new Blob([generateText()], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      const fname = (document.getElementById('filename').value.trim() || `tong_hop_link_${nowStamp()}`) + '.txt';
+      a.href = URL.createObjectURL(blob);
+      a.download = fname;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Đã xuất file .txt', 'success');
+    }
+
+    function copyToClipboard() {
+      navigator.clipboard.writeText(generateText())
+        .then(() => toast('Đã copy nội dung', 'success'))
+        .catch(() => {
+          const ta = document.createElement('textarea');
+          ta.value = generateText();
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+          toast('Đã copy nội dung', 'success');
+        });
+    }
+
+    function clearAll() {
+      if (!confirm('Xoá tất cả link?')) return;
+      [1, 2, 3, 4].forEach(ch => document.getElementById(`list-${ch}`).innerHTML = '');
+      document.getElementById('preview').textContent = '';
+      toast('Đã xoá toàn bộ', 'success');
+    }
+
+    // ===== DRAG & DROP =====
+    ['1', '2', '3', '4'].forEach(ch => {
+      const card = document.querySelector(`.card[data-chapter="${ch}"]`);
+      if (!card) return;
+
+      ['dragenter', 'dragover'].forEach(ev => {
+        card.addEventListener(ev, e => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+          card.classList.add('drag-over');
+        });
       });
-    }
 
-    function clearAll(){ if(!confirm('Xoá tất cả link?')) return; [1,2,3,4].forEach(ch=>document.getElementById(`list-${ch}`).innerHTML=''); document.getElementById('preview').textContent=''; toast('Đã xoá toàn bộ'); }
-
-    // Seed: 1 ô cho mỗi chương (không auto-save)
-    window.addEventListener('DOMContentLoaded',()=>[1,2,3,4].forEach(addLink));
-// Kéo-thả file vào card chương
-['1','2','3','4'].forEach(ch=>{
-  const card = document.querySelector(`.card[data-chapter="${ch}"]`);
-  if(!card) return;
-
-  // highlight khi kéo vào
-  ['dragenter','dragover'].forEach(ev=>{
-    card.addEventListener(ev, e=>{
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'copy';
-      card.style.outline = '2px dashed var(--accent)';
-      card.style.outlineOffset = '6px';
-    });
-  });
-
-  ['dragleave','drop'].forEach(ev=>{
-    card.addEventListener(ev, e=>{
-      e.preventDefault();
-      card.style.outline = 'none';
-      card.style.outlineOffset = '0';
-    });
-  });
-
-  card.addEventListener('drop', async e=>{
-    const file = e.dataTransfer.files?.[0];
-    if(!file) return;
-    try{
-      const text = await file.text();
-      const links = extractLinks(text);
-      if(links.length === 0){ toast('Không phát hiện URL trong file'); return; }
-      const list = document.getElementById(`list-${ch}`);
-      links.forEach(u=>{
-        const row = createRow(ch);
-        row.querySelector('input').value = u;
-        list.appendChild(row);
+      ['dragleave', 'drop'].forEach(ev => {
+        card.addEventListener(ev, e => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+        });
       });
-      toast(`Đã kéo-thả ${links.length} link vào Chương ${ch}`);
-    }catch(err){
-      console.error(err); toast('Lỗi đọc file');
-    }
-  });
-});
+
+      card.addEventListener('drop', async e => {
+        const file = e.dataTransfer.files?.[0];
+        if (!file) return;
+
+        try {
+          const text = await file.text();
+          const links = extractLinks(text);
+
+          if (links.length === 0) {
+            toast('Không phát hiện URL trong file');
+            return;
+          }
+
+          const list = document.getElementById(`list-${ch}`);
+          links.forEach(u => {
+            const row = createRow(ch);
+            row.querySelector('input').value = u;
+            list.appendChild(row);
+          });
+
+          toast(`Đã kéo-thả ${links.length} link vào Chương ${ch}`, 'success');
+        } catch (err) {
+          console.error(err);
+          toast('Lỗi đọc file');
+        }
+      });
+    });
+
+    // ===== INITIALIZATION =====
+    window.addEventListener('DOMContentLoaded', () => {
+      [1, 2, 3, 4].forEach(addLink);
+    });
   </script>
 </body>
 </html>
