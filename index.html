@@ -8,6 +8,9 @@
   <meta property="og:title" content="LinkCollector — Tổng hợp link theo chương"/>
   <meta property="og:description" content="Dán nhiều link, tự tách URL, xem trước & xuất .txt. Dark/Light mode. Không auto-save."/>
 
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
     /* ===== WEB3 FUTURISTIC DESIGN SYSTEM ===== */
     /* Premium Dark Neo-Glass • Fintech meets Sci-Fi OS */
@@ -262,6 +265,15 @@
       box-shadow: var(--glow-sm);
       position: relative;
       overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .logo svg {
+      width: 22px;
+      height: 22px;
+      color: white;
+      stroke-width: 2.5;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
 
     .logo::after {
@@ -361,6 +373,26 @@
       font-size: 16px;
       position: relative;
       z-index: 1;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-item-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+
+    .nav-item:hover .nav-item-icon {
+      transform: scale(1.1);
+    }
+
+    .nav-item.active .nav-item-icon {
+      animation: iconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
 
     .sidebar-footer {
@@ -413,6 +445,20 @@
       font-size: 16px;
       position: relative;
       z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .theme-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+
+    .theme-toggle:hover .theme-icon {
+      transform: rotate(360deg);
     }
 
     /* ===== MAIN CONTENT ===== */
@@ -489,6 +535,12 @@
       justify-content: center;
       transition: all 0.25s ease;
       border: 1px solid var(--border-subtle);
+    }
+
+    .mobile-menu-toggle svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2;
     }
 
     .mobile-menu-toggle:hover {
@@ -785,6 +837,26 @@
       z-index: 1;
     }
 
+    .btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn:hover svg {
+      transform: scale(1.1);
+    }
+
+    .btn-primary:hover svg {
+      animation: iconBounce 0.6s ease;
+    }
+
+    @keyframes iconBounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
     .btn::before {
       content: '';
       position: absolute;
@@ -1015,7 +1087,7 @@
     }
 
     .preview-container:empty::before {
-      content: '👁️ Nhấn "Xem trước" để hiển thị kết quả...';
+      content: 'Nhấn "Xem trước" để hiển thị kết quả...';
       color: var(--text-tertiary);
       font-style: italic;
       font-family: 'Inter', sans-serif;
@@ -1308,7 +1380,7 @@
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <div class="logo">🔗</div>
+        <div class="logo"><i data-lucide="link-2"></i></div>
         <div class="brand-text">
           <h1>LinkCollector</h1>
           <p>v2.0</p>
@@ -1317,19 +1389,19 @@
 
       <nav class="nav-section">
         <div class="nav-item active" onclick="scrollToSection('workspace')">
-          <span class="nav-item-icon">📋</span>
+          <span class="nav-item-icon"><i data-lucide="layout-dashboard"></i></span>
           <span>Workspace</span>
         </div>
         <div class="nav-item" onclick="scrollToSection('settings')">
-          <span class="nav-item-icon">⚙️</span>
+          <span class="nav-item-icon"><i data-lucide="settings"></i></span>
           <span>Thiết lập</span>
         </div>
         <div class="nav-item" onclick="scrollToSection('chapters')">
-          <span class="nav-item-icon">📚</span>
+          <span class="nav-item-icon"><i data-lucide="book-open"></i></span>
           <span>Chương</span>
         </div>
         <div class="nav-item" onclick="scrollToSection('results')">
-          <span class="nav-item-icon">📊</span>
+          <span class="nav-item-icon"><i data-lucide="bar-chart-3"></i></span>
           <span>Kết quả</span>
         </div>
       </nav>
@@ -1337,7 +1409,7 @@
       <div class="sidebar-footer">
         <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">
           <span>
-            <span class="theme-icon" id="themeIcon">🌙</span>
+            <span class="theme-icon" id="themeIcon"><i data-lucide="moon"></i></span>
             <span id="themeLabel">Dark mode</span>
           </span>
         </button>
@@ -1350,7 +1422,7 @@
       <header class="top-bar">
         <div class="top-bar-left">
           <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
-            ☰
+            <i data-lucide="menu"></i>
           </button>
           <div>
             <h2>Link Management</h2>
@@ -1359,15 +1431,15 @@
         </div>
         <div class="top-bar-actions">
           <button class="btn" onclick="generatePreview()">
-            <span>👁️</span>
+            <i data-lucide="eye"></i>
             <span>Xem trước</span>
           </button>
           <button class="btn" onclick="copyToClipboard()">
-            <span>📋</span>
+            <i data-lucide="clipboard"></i>
             <span>Copy</span>
           </button>
           <button class="btn btn-primary" onclick="downloadTxt()">
-            <span>⬇️</span>
+            <i data-lucide="download"></i>
             <span>Xuất .txt</span>
           </button>
         </div>
@@ -1429,9 +1501,9 @@
               </div>
 
               <div class="btn-group">
-                <button class="btn" onclick="addLink(1)">+ Thêm link</button>
-                <button class="btn" onclick="bulkPaste(1)">📥 Dán nhiều</button>
-                <button class="btn" onclick="pickFile(1)">📁 Nhập file</button>
+                <button class="btn" onclick="addLink(1)"><i data-lucide="plus"></i> Thêm link</button>
+                <button class="btn" onclick="bulkPaste(1)"><i data-lucide="clipboard-paste"></i> Dán nhiều</button>
+                <button class="btn" onclick="pickFile(1)"><i data-lucide="file-up"></i> Nhập file</button>
               </div>
 
               <div id="list-1" class="link-list"></div>
@@ -1447,9 +1519,9 @@
               </div>
 
               <div class="btn-group">
-                <button class="btn" onclick="addLink(2)">+ Thêm link</button>
-                <button class="btn" onclick="bulkPaste(2)">📥 Dán nhiều</button>
-                <button class="btn" onclick="pickFile(2)">📁 Nhập file</button>
+                <button class="btn" onclick="addLink(2)"><i data-lucide="plus"></i> Thêm link</button>
+                <button class="btn" onclick="bulkPaste(2)"><i data-lucide="clipboard-paste"></i> Dán nhiều</button>
+                <button class="btn" onclick="pickFile(2)"><i data-lucide="file-up"></i> Nhập file</button>
               </div>
 
               <div id="list-2" class="link-list"></div>
@@ -1465,9 +1537,9 @@
               </div>
 
               <div class="btn-group">
-                <button class="btn" onclick="addLink(3)">+ Thêm link</button>
-                <button class="btn" onclick="bulkPaste(3)">📥 Dán nhiều</button>
-                <button class="btn" onclick="pickFile(3)">📁 Nhập file</button>
+                <button class="btn" onclick="addLink(3)"><i data-lucide="plus"></i> Thêm link</button>
+                <button class="btn" onclick="bulkPaste(3)"><i data-lucide="clipboard-paste"></i> Dán nhiều</button>
+                <button class="btn" onclick="pickFile(3)"><i data-lucide="file-up"></i> Nhập file</button>
               </div>
 
               <div id="list-3" class="link-list"></div>
@@ -1483,9 +1555,9 @@
               </div>
 
               <div class="btn-group">
-                <button class="btn" onclick="addLink(4)">+ Thêm link</button>
-                <button class="btn" onclick="bulkPaste(4)">📥 Dán nhiều</button>
-                <button class="btn" onclick="pickFile(4)">📁 Nhập file</button>
+                <button class="btn" onclick="addLink(4)"><i data-lucide="plus"></i> Thêm link</button>
+                <button class="btn" onclick="bulkPaste(4)"><i data-lucide="clipboard-paste"></i> Dán nhiều</button>
+                <button class="btn" onclick="pickFile(4)"><i data-lucide="file-up"></i> Nhập file</button>
               </div>
 
               <div id="list-4" class="link-list"></div>
@@ -1502,10 +1574,10 @@
 
           <div class="card">
             <div class="btn-group">
-              <button class="btn" onclick="generatePreview()">👁️ Xem trước</button>
-              <button class="btn btn-primary" onclick="downloadTxt()">⬇️ Xuất .txt</button>
-              <button class="btn" onclick="copyToClipboard()">📋 Copy nội dung</button>
-              <button class="btn btn-danger" onclick="clearAll()">🗑️ Xoá tất cả</button>
+              <button class="btn" onclick="generatePreview()"><i data-lucide="eye"></i> Xem trước</button>
+              <button class="btn btn-primary" onclick="downloadTxt()"><i data-lucide="download"></i> Xuất .txt</button>
+              <button class="btn" onclick="copyToClipboard()"><i data-lucide="clipboard"></i> Copy nội dung</button>
+              <button class="btn btn-danger" onclick="clearAll()"><i data-lucide="trash-2"></i> Xoá tất cả</button>
             </div>
 
             <div id="preview" class="preview-container"></div>
@@ -1536,7 +1608,8 @@
     function applyTheme() {
       root.setAttribute('data-theme', dark ? 'dark' : 'light');
       document.getElementById('themeLabel').textContent = dark ? 'Dark mode' : 'Light mode';
-      document.getElementById('themeIcon').textContent = dark ? '🌙' : '☀️';
+      document.getElementById('themeIcon').innerHTML = dark ? '<i data-lucide="moon"></i>' : '<i data-lucide="sun"></i>';
+      lucide.createIcons();
     }
 
     applyTheme();
@@ -1581,13 +1654,14 @@
       const toastEl = document.createElement('div');
       toastEl.className = `toast ${type}`;
 
-      const icon = type === 'success' ? '✓' : 'ℹ';
+      const icon = type === 'success' ? '<i data-lucide="check-circle"></i>' : '<i data-lucide="info"></i>';
       toastEl.innerHTML = `
         <span class="toast-icon">${icon}</span>
         <span>${msg}</span>
       `;
 
       container.appendChild(toastEl);
+      lucide.createIcons();
 
       setTimeout(() => {
         toastEl.style.opacity = '0';
@@ -1660,7 +1734,7 @@
       wrap.className = 'link-item';
       wrap.innerHTML = `
         <input type="url" placeholder="Dán link hoặc đoạn có chứa link..." inputmode="url">
-        <button class="btn-remove" title="Xoá">✕</button>
+        <button class="btn-remove" title="Xoá"><i data-lucide="x"></i></button>
       `;
 
       const input = wrap.querySelector('input');
@@ -1671,6 +1745,7 @@
         setTimeout(() => wrap.remove(), 200);
       };
 
+      lucide.createIcons();
       return wrap;
     }
 
@@ -1903,6 +1978,7 @@
     // ===== INITIALIZATION =====
     window.addEventListener('DOMContentLoaded', () => {
       [1, 2, 3, 4].forEach(addLink);
+      lucide.createIcons();
     });
   </script>
 </body>
