@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PasteCleaner — Sửa lỗi dán từ Web/PDF sang Word</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --text: #eef2ff;
+      --muted: #94a3b8;
+      --card: #0f172a;
+      --accent: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: #1f2937;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      background: linear-gradient(180deg, #0b1220, #0b1220 30%, #0d1325);
+      color: var(--text);
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Inter, Arial, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+    
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    
+    h1 {
+      font-size: 26px;
+      letter-spacing: 0.3px;
+      font-weight: 700;
+    }
+    
+    .badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0b1220;
+      background: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    
+    .header-desc {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    /* Card */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .card-title-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: var(--accent);
+      color: #0b1220;
+      border-radius: 50%;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+    
+    @media (min-width: 980px) {
+      .grid {
+        grid-template-columns: 1.2fr 1fr;
+      }
+    }
+    
+    /* Textarea */
+    textarea {
+      width: 100%;
+      min-height: 320px;
+      max-height: 60vh;
+      background: #0a1020;
+      color: var(--text);
+      border: 1px solid #1f2a44;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: vertical;
+      font-family: inherit;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    textarea::placeholder {
+      color: var(--muted);
+      opacity: 0.6;
+    }
+    
+    /* Controls */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    
+    @media (min-width: 600px) {
+      .controls {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    label {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: #0a1020;
+      border: 1px solid #1e293b;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    label:hover {
+      border-color: #334155;
+      background: #0d1425;
+    }
+    
+    input[type="checkbox"] {
+      margin-top: 2px;
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    
+    button {
+      background: #111827;
+      border: 1px solid #1f2937;
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    
+    button:hover {
+      border-color: #374151;
+      background: #1a202e;
+    }
+    
+    button:active {
+      transform: scale(0.98);
+    }
+    
+    .primary {
+      background: var(--accent);
+      color: #0b1220;
+      border-color: transparent;
+    }
+    
+    .primary:hover {
+      background: #0ea5e9;
+    }
+    
+    .ok {
+      background: var(--ok);
+      color: #03140a;
+      border-color: transparent;
+    }
+    
+    .ok:hover {
+      background: #16a34a;
+    }
+    
+    .danger {
+      background: var(--danger);
+      color: #180405;
+      border-color: transparent;
+    }
+    
+    .danger:hover {
+      background: #dc2626;
+    }
+    
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    
+    .pill {
+      border: 1px solid #253047;
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: #0a1020;
+      font-weight: 500;
+    }
+    
+    /* Preview */
+    .preview {
+      white-space: pre-wrap;
+      background: #0a1020;
+      border: 1px dashed #26324a;
+      padding: 14px;
+      border-radius: 12px;
+      min-height: 100px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    
+    /* Footer */
+    .footer {
+      opacity: 0.7;
+      font-size: 12px;
+      margin-top: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    
+    kbd {
+      background: #1a202e;
+      border: 1px solid #1f2937;
+      border-bottom-width: 2px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+    }
+    
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    
+    .muted {
+      color: var(--muted);
+    }
+    
+    /* Details/Summary */
+    details {
+      margin-top: 8px;
+    }
+    
+    summary {
+      cursor: pointer;
+      padding: 12px;
+      background: #0a1020;
+      border-radius: 10px;
+      list-style: none;
+      user-select: none;
+    }
+    
+    summary::-webkit-details-marker {
+      display: none;
+    }
+    
+    summary:hover {
+      background: #0d1425;
+    }
+    
+    details[open] summary {
+      margin-bottom: 12px;
+    }
+    
+    details p {
+      padding: 12px;
+      line-height: 1.8;
+    }
+    
+    /* Toast */
+    .toast {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 24px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.3s ease-out;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PasteCleaner</h1>
+      <span class="badge">Web/PDF → Word</span>
+      <span class="header-desc">Dọn nhanh lỗi khi Ctrl+C / Ctrl+V</span>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: INPUT & ACTIONS -->
+      <section class="card">
+        <div class="card-title">
+          <span class="card-title-number">1</span>
+          Dán văn bản vào đây
+        </div>
+        <div class="stats" id="statsTop"></div>
+        <textarea id="input" placeholder="Ctrl+V nội dung từ Web hoặc PDF vào đây..." spellcheck="false"></textarea>
+        
+        <div class="btn-row">
+          <button class="primary" id="btnClean">🧹 Làm sạch</button>
+          <button id="btnCopy">📋 Copy</button>
+          <button id="btnDownload">💾 Tải .txt</button>
+          <button id="btnUndo">↩️ Quay lại</button>
+          <button class="danger" id="btnClear">🗑️ Xóa</button>
+        </div>
+        
+        <div class="footer">
+          💡 <strong>Mẹo:</strong> Để dán không định dạng trong Word, dùng 
+          <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> → chọn <span class="mono">Unformatted Text</span>
+        </div>
+      </section>
+
+      <!-- RIGHT: OPTIONS & PREVIEW -->
+      <section class="card">
+        <div class="card-title">
+          <span class="card-title-number">2</span>
+          Tùy chọn xử lý
+        </div>
+        
+        <div class="controls">
+          <label>
+            <input type="checkbox" id="optStripHtml" checked>
+            <span>Bỏ thẻ HTML / màu nền</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optNbsp" checked>
+            <span>Đổi &nbsp; → khoảng trắng</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optTrimSpaces" checked>
+            <span>Gom khoảng trắng thừa</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optFixLinebreaks" checked>
+            <span>Gộp dòng do PDF</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optRemoveBreaks">
+            <span>Xóa xuống dòng đơn</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optHyphen" checked>
+            <span>Gộp từ ngắt dòng (hyphen)</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optSmartQuotes" checked>
+            <span>Chuẩn hóa dấu ngoặc</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optBullets">
+            <span>Chuẩn hóa bullet (•, –, -)</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optUnwrapUrls" checked>
+            <span>Gộp URL bị ngắt dòng</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optSplitSent">
+            <span>Tách câu thành dòng mới</span>
+          </label>
+          <label>
+            <input type="checkbox" id="optRmCtl">
+            <span>Xóa ký tự điều khiển ẩn</span>
+          </label>
+        </div>
+
+        <div class="btn-row">
+          <button id="btnLower">abc viết thường</button>
+          <button id="btnUpper">ABC VIẾT HOA</button>
+          <button id="btnSentence">Abc Viết hoa đầu câu</button>
+        </div>
+
+        <div class="btn-row">
+          <button id="btnShowPreview" class="ok">👁️ Xem trước kết quả</button>
+        </div>
+
+        <div id="preview" class="preview" hidden></div>
+
+        <div class="footer">
+          ⚠️ Công cụ dùng heuristic để làm sạch nhanh, không hoàn hảo 100% cho mọi tài liệu phức tạp. Có thể chạy lại nhiều lần.
+        </div>
+      </section>
+    </div>
+
+    <!-- TIPS SECTION -->
+    <section class="card">
+      <details>
+        <summary><strong>📚 Mẹo & Regex hay dùng (nhấn để xem)</strong></summary>
+        <p class="muted">
+          • <strong>Xuống dòng theo câu:</strong> Trong Word, thay ". " → ". ^p"<br>
+          • <strong>Xóa hyperlink:</strong> Chọn tất cả → <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F9</kbd><br>
+          • <strong>Tìm dòng trống kép:</strong> Tìm <code>\n\n+</code> → thay bằng <code>\n\n</code><br>
+          • <strong>TCVN3/VNI → Unicode:</strong> Nên dùng Unikey Toolkit<br>
+          • <strong>Xóa số trang:</strong> Tìm <code>^\d+$</code> (dòng chỉ có số) và xóa
+        </p>
+      </details>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="footer muted text-center" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+      © 2024 PasteCleaner — by D | 🔒 Chạy hoàn toàn local, không gửi dữ liệu đi đâu cả
+    </div>
+  </div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const input = $('#input');
+    const preview = $('#preview');
+    const statsTop = $('#statsTop');
+
+    let historyStack = [];
+
+    const ABBRS = new Set([
+      'tp', 'ts', 'ths', 'th.s', 'pgs', 'gs', 'pgs.ts', 
+      'mr', 'mrs', 'dr', 'prof', 'vs', 'vd', 'v.d', 'v.v', 
+      'e.g', 'i.e', 'etc', 'no', 'st', 'bt', 'q', 
+      'tp.hcm', 'hn', 'usa', 'uk'
+    ]);
+
+    function updateStats(txt) {
+      const chars = txt.length;
+      const words = (txt.match(/\S+/g) || []).length;
+      const lines = txt.split(/\n/).length;
+      statsTop.innerHTML = `
+        <span class="pill">${chars.toLocaleString('vi-VN')} ký tự</span>
+        <span class="pill">${words.toLocaleString('vi-VN')} từ</span>
+        <span class="pill">${lines.toLocaleString('vi-VN')} dòng</span>
+      `;
+    }
+
+    function pushHistory() {
+      historyStack.push(input.value);
+      if (historyStack.length > 50) historyStack.shift();
+    }
+
+    function stripHTML(html) {
+      html = html.replace(/<\s*br\s*\/?\s*>/gi, '\n');
+      html = html.replace(/<\s*div\s*>/gi, '');
+      html = html.replace(/<\s*\/div\s*>/gi, '\n');
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || '';
+    }
+
+    function normalizeNbsp(text) {
+      return text.replace(/\u00A0|&nbsp;/g, ' ');
+    }
+
+    function removeControlChars(text) {
+      return text
+        .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, '')
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+    }
+
+    function smartToStraight(text) {
+      return text
+        .replace(/[""«»]/g, '"')
+        .replace(/[''‚‛]/g, "'")
+        .replace(/[–—]/g, '-')
+        .replace(/…/g, '...');
+    }
+
+    function trimSpaces(text) {
+      return text
+        .replace(/[\t ]+/g, ' ')
+        .replace(/ *\n */g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/^ +| +$/gm, '')
+        .trim();
+    }
+
+    function fixPdfLinebreaks(text) {
+      return text.replace(/([^.!?;:\-])\n(?!\n|\s*[\-•◦·*]|\s*\d+\.)/g, '$1 ');
+    }
+
+    function mergeHyphenBreaks(text) {
+      return text.replace(/([\p{L}0-9])-[\t ]*\n([\p{L}0-9])/gu, '$1$2');
+    }
+
+    function removeAllBreaks(text) {
+      return text.replace(/\r\n?/g, '\n').replace(/\n(?!\n)/g, ' ');
+    }
+
+    function normalizeBullets(text) {
+      return text
+        .replace(/^\s*[•◦·*]\s*/gm, '- ')
+        .replace(/^(\s*)[–—-]\s*/gm, '$1- ')
+        .replace(/^(\s*)\d+\)\s*/gm, '$1- ');
+    }
+
+    function unwrapLongUrls(text) {
+      return text.replace(/(https?:\/\/\S+)\n(?=\S)/g, '$1');
+    }
+
+    function splitSentencesToNewlines(text) {
+      return text.replace(/([.!?…]+)\s+(?=\p{L}|\d)/gu, (match, punct, offset, str) => {
+        const back = str.slice(0, Math.max(0, offset)).split(/\s+/).pop() || '';
+        const word = back.replace(/[^\p{L}\d\.]/gu, '').toLowerCase();
+        if (ABBRS.has(word) || /\b\d+\.(\d+)+$/.test(back)) {
+          return match;
+        }
+        return punct + '\n';
+      });
+    }
+
+    function sentenceCase(text) {
+      return text.replace(/(^|[\n\r]\s*)([^\n\r]+)/g, (match, start, line) => {
+        return start + line.replace(/^([\p{L}])(.*)$/u, (m, first, rest) => {
+          return first.toLocaleUpperCase('vi-VN') + rest;
+        });
+      });
+    }
+
+    function toUpper(text) {
+      return text.toLocaleUpperCase('vi-VN');
+    }
+
+    function toLower(text) {
+      return text.toLocaleLowerCase('vi-VN');
+    }
+
+    function clean() {
+      pushHistory();
+      let text = input.value;
+      
+      if ($('#optStripHtml').checked) {
+        text = stripHTML(text);
+      }
+      if ($('#optNbsp').checked) {
+        text = normalizeNbsp(text);
+      }
+      if ($('#optRmCtl').checked) {
+        text = removeControlChars(text);
+      }
+      if ($('#optSmartQuotes').checked) {
+        text = smartToStraight(text);
+      }
+      if ($('#optFixLinebreaks').checked) {
+        text = fixPdfLinebreaks(text);
+      }
+      if ($('#optHyphen').checked) {
+        text = mergeHyphenBreaks(text);
+      }
+      if ($('#optUnwrapUrls').checked) {
+        text = unwrapLongUrls(text);
+      }
+      if ($('#optRemoveBreaks').checked) {
+        text = removeAllBreaks(text);
+      }
+      if ($('#optBullets').checked) {
+        text = normalizeBullets(text);
+      }
+      if ($('#optSplitSent').checked) {
+        text = splitSentencesToNewlines(text);
+      }
+      if ($('#optTrimSpaces').checked) {
+        text = trimSpaces(text);
+      }
+      
+      input.value = text;
+      updateStats(text);
+      return text;
+    }
+
+    function showPreview() {
+      const text = clean();
+      preview.textContent = text;
+      preview.hidden = false;
+    }
+
+    function toast(message, isError = false) {
+      const toastEl = document.createElement('div');
+      toastEl.className = 'toast';
+      toastEl.textContent = message;
+      toastEl.style.background = isError ? '#ef4444' : '#22c55e';
+      toastEl.style.color = '#0b1220';
+      document.body.appendChild(toastEl);
+      setTimeout(() => toastEl.remove(), 2000);
+    }
+
+    // Event Listeners
+    $('#btnClean').addEventListener('click', clean);
+    
+    $('#btnShowPreview').addEventListener('click', showPreview);
+    
+    $('#btnCopy').addEventListener('click', async () => {
+      const text = clean();
+      try {
+        await navigator.clipboard.writeText(text);
+        toast('✅ Đã copy nội dung sạch');
+      } catch (error) {
+        toast('❌ Copy thất bại: trình duyệt chặn', true);
+      }
+    });
+    
+    $('#btnDownload').addEventListener('click', () => {
+      const text = clean();
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'cleaned_text.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('✅ Đã tải file cleaned_text.txt');
+    });
+    
+    $('#btnClear').addEventListener('click', () => {
+      if (input.value && !confirm('Bạn có chắc muốn xóa toàn bộ văn bản?')) {
+        return;
+      }
+      input.value = '';
+      updateStats('');
+      preview.hidden = true;
+      toast('🗑️ Đã xóa nội dung');
+    });
+    
+    $('#btnUndo').addEventListener('click', () => {
+      if (historyStack.length > 0) {
+        input.value = historyStack.pop();
+        updateStats(input.value);
+        toast('↩️ Đã quay lại');
+      } else {
+        toast('❌ Không có thao tác trước đó', true);
+      }
+    });
+    
+    $('#btnLower').addEventListener('click', () => {
+      pushHistory();
+      input.value = toLower(input.value);
+      updateStats(input.value);
+    });
+    
+    $('#btnUpper').addEventListener('click', () => {
+      pushHistory();
+      input.value = toUpper(input.value);
+      updateStats(input.value);
+    });
+    
+    $('#btnSentence').addEventListener('click', () => {
+      pushHistory();
+      input.value = sentenceCase(input.value);
+      updateStats(input.value);
+    });
+    
+    input.addEventListener('input', () => updateStats(input.value));
+    
+    // Initialize
+    updateStats('');
+  </script>
+</body>
+</html>

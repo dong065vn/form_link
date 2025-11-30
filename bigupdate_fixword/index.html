@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PasteCleaner — Sửa lỗi dán từ Web/PDF sang Word (v2.4)</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --text: #eef2ff;
+      --muted: #94a3b8;
+      --card: #0f172a;
+      --accent: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: #1f2937;
+      --hover: #1e293b;
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #0b1220, #0b1220 30%, #0d1325);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      padding: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0.3px;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .badge {
+      font-size: 12px;
+      color: #0b1220;
+      background: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+    
+    @media (min-width: 1180px) {
+      .grid {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 350px;
+      max-height: 65vh;
+      background: #0a1020;
+      color: var(--text);
+      border: 2px solid #1f2a44;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: vertical;
+      font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+      transition: border-color 0.2s;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    
+    label {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: #0a1020;
+      border: 1px solid #1e293b;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    label:hover {
+      background: var(--hover);
+      border-color: #374151;
+    }
+    
+    input[type="checkbox"] {
+      margin-top: 3px;
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+    
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    button {
+      background: #111827;
+      border: 1px solid #1f2937;
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    
+    button:hover {
+      border-color: #374151;
+      background: var(--hover);
+      transform: translateY(-1px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .primary {
+      background: var(--accent);
+      color: #0b1220;
+      border-color: transparent;
+    }
+    
+    .primary:hover {
+      background: #22d3ee;
+    }
+    
+    .ok {
+      background: var(--ok);
+      color: #03140a;
+      border-color: transparent;
+    }
+    
+    .ok:hover {
+      background: #4ade80;
+    }
+    
+    .danger {
+      background: var(--danger);
+      color: #180405;
+      border-color: transparent;
+    }
+    
+    .danger:hover {
+      background: #f87171;
+    }
+    .muted {
+      color: var(--muted);
+    }
+    
+    .mono {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+    }
+    
+    .stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    
+    .pill {
+      border: 1px solid #253047;
+      border-radius: 999px;
+      padding: 5px 12px;
+      background: #0a1020;
+      font-weight: 500;
+    }
+    
+    .preview {
+      white-space: pre-wrap;
+      background: #0a1020;
+      border: 2px dashed #26324a;
+      padding: 14px;
+      border-radius: 12px;
+      min-height: 120px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    
+    .footer {
+      opacity: 0.7;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+    
+    kbd {
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-bottom-width: 2px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .out {
+      white-space: pre-wrap;
+      background: #070d1a;
+      border: 1px solid #203049;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    .out b {
+      color: #a5b4fc;
+    }
+    
+    table.kw {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    
+    table.kw th,
+    table.kw td {
+      border: 1px solid #253047;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    
+    table.kw th {
+      background: #0c162a;
+      font-weight: 600;
+    }
+    
+    .inputs {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    @media (min-width: 780px) {
+      .inputs {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    .inputbox {
+      background: #0a1020;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    
+    .inputbox label {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0 0 8px 0;
+      display: block;
+    }
+    
+    .hint {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+    
+    .drop {
+      border: 2px dashed #2b3a5a;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 13px;
+      opacity: 0.85;
+      text-align: center;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+      background: #0a1020;
+    }
+    
+    .drop:hover {
+      border-color: var(--accent);
+      opacity: 1;
+    }
+    
+    details {
+      margin-top: 16px;
+    }
+    
+    details summary {
+      cursor: pointer;
+      padding: 12px;
+      background: var(--hover);
+      border-radius: 10px;
+      user-select: none;
+      font-weight: 600;
+    }
+    
+    details summary:hover {
+      background: #253047;
+    }
+    
+    details p {
+      margin-top: 12px;
+      padding: 12px;
+      line-height: 1.8;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 20px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #0a1020;
+      border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #374151;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .keyboard-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: 8px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PasteCleaner</h1>
+      <span class="badge">Web/PDF → Word</span>
+      <span class="muted">Dọn nhanh lỗi khi Ctrl+C / Ctrl+V</span>
+      <span class="pill" id="version">v2.4</span>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: INPUT & ACTIONS -->
+      <section class="card">
+        <div class="section-title">1) Dán văn bản vào đây</div>
+        <div class="stats" id="statsTop" style="margin-bottom:8px"></div>
+
+        <div class="drop" id="dropzone">📄 Kéo thả file .txt/.md/.csv vào đây hoặc Ctrl+V để dán…</div>
+        <textarea id="input" placeholder="Ctrl+V nội dung từ Web hoặc PDF vào đây..."></textarea>
+
+        <div class="row" style="margin-top:12px;gap:8px">
+          <button class="primary" id="btnClean">🧹 Làm sạch</button>
+          <button class="ok" id="btnCopy">📋 Copy kết quả</button>
+          <button id="btnDownload">💾 Tải .txt</button>
+          <button id="btnUndo">↩️ Hoàn tác</button>
+          <button id="btnLoadFile">📁 Mở file</button>
+          <button id="btnClear" class="danger">🗑️ Xóa hết</button>
+          <input id="filePicker" type="file" accept=".txt,.md,.csv,.docx,.pdf" hidden>
+        </div>
+        <div class="footer">
+          💡 <strong>Phím tắt:</strong>
+          <kbd>Ctrl</kbd>+<kbd>Enter</kbd> = Làm sạch |
+          <kbd>Ctrl</kbd>+<kbd>S</kbd> = Tải file |
+          <kbd>Ctrl</kbd>+<kbd>Z</kbd> = Hoàn tác
+          <br>
+          📝 <strong>Word tip:</strong> Dán không định dạng: <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> → Unformatted Text
+        </div>
+      </section>
+
+      <!-- RIGHT: OPTIONS & PREVIEW -->
+      <section class="card">
+        <div class="section-title">2) Tùy chọn xử lý</div>
+        <div class="controls" style="margin-top:10px">
+          <label><input type="checkbox" id="optStripHtml" checked> Bỏ thẻ HTML / màu nền khi dán (strip HTML)</label>
+          <label><input type="checkbox" id="optNbsp" checked> Đổi non‑breaking space (&nbsp;) → khoảng trắng thường</label>
+          <label><input type="checkbox" id="optTrimSpaces" checked> Gom nhiều khoảng trắng → 1 khoảng trắng; bỏ khoảng trắng đầu/cuối</label>
+          <label><input type="checkbox" id="optFixLinebreaks" checked> Gộp dòng do PDF (xoá xuống dòng giữa câu)</label>
+          <label><input type="checkbox" id="optRemoveBreaks"> Loại bỏ toàn bộ xuống dòng đơn (giữ dòng trắng kép)</label>
+          <label><input type="checkbox" id="optHyphen" checked> Gộp từ bị ngắt bằng dấu gạch nối ở cuối dòng (hyphen‑break)</label>
+          <label><input type="checkbox" id="optSmartQuotes" checked> Chuẩn hoá dấu ngoặc kép, nháy, gạch nối (smart → thẳng)</label>
+          <label><input type="checkbox" id="optBullets"> Chuẩn hoá bullet/numbering (•, –, -) → “- ”</label>
+          <label><input type="checkbox" id="optUnwrapUrls" checked> Bỏ xuống dòng trong URL dài (gộp đường link)</label>
+          <label><input type="checkbox" id="optSplitSent"> Tách câu thành dòng mới sau dấu . ? ! … (tránh viết tắt thường gặp)</label>
+          <label><input type="checkbox" id="optRmCtl" checked> Loại ký tự điều khiển ẩn (CR/LF lạ, ZWSP, RTL/LTR marks)</label>
+          <label><input type="checkbox" id="optNormalizeTables" checked> Chuẩn hoá bảng (tab để dán vào Word ⇢ Convert to Table)</label>
+          <label><input type="checkbox" id="optAutoPaste" checked> Tự làm sạch ngay khi dán (Auto‑clean on paste)</label>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button id="btnLower">viết thường</button>
+          <button id="btnUpper">VIẾT HOA</button>
+          <button id="btnSentence">Viết hoa đầu câu</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="btnShowPreview" class="ok">Xem trước kết quả</button>
+        </div>
+        <div id="preview" class="preview" style="margin-top:10px" hidden></div>
+
+        <hr style="border-color:#1f2937;margin:16px 0">
+        <div class="section-title">3) Công cụ nâng cao</div>
+        <div class="inputs" style="margin-top:10px">
+          <div class="inputbox">
+            <label for="keywords"><b>Từ khóa thống kê</b></label>
+            <input id="keywords" type="text" placeholder="Ví dụ: ITS, IoT, AI, giao thông thông minh" style="width:100%;background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:8px;color:#eef2ff">
+            <div class="hint">Nhập nhiều từ, cách nhau bằng dấu phẩy. Hoặc bấm "Trích xuất tự động" để gợi ý.</div>
+          </div>
+          <div class="inputbox">
+            <label for="headerLines"><b>Mẫu header/footer (tuỳ chọn)</b></label>
+            <input id="headerLines" type="text" placeholder="Ví dụ: Đại học X — Khoa Y, Tên môn học..." style="width:100%;background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:8px;color:#eef2ff">
+            <div class="hint">Nếu bỏ trống, công cụ sẽ tự phát hiện dòng lặp để xoá.</div>
+          </div>
+        </div>
+        <details open>
+          <summary><strong>📊 Phân tích & Thống kê</strong></summary>
+          <div class="row" style="margin-top:10px;gap:8px">
+            <button id="btnQuickReport">📈 Báo cáo nhanh</button>
+            <button id="btnKeywordStats">🔍 Thống kê từ khóa</button>
+            <button id="btnAutoKeywords">✨ Trích xuất tự động</button>
+            <button id="btnLangRatio">🌐 Tỷ lệ VI–EN</button>
+            <button id="btnCheckRules">✅ Kiểm tra chuẩn nộp</button>
+          </div>
+        </details>
+
+        <details style="margin-top:12px">
+          <summary><strong>📤 Xuất dữ liệu</strong></summary>
+          <div class="row" style="margin-top:10px;gap:8px">
+            <button id="btnExportKWRTF">📄 Xuất từ khóa (.rtf)</button>
+            <button id="btnExportKWCSV">📊 Xuất từ khóa (.csv)</button>
+            <button id="btnExportTablesCSV">📋 Xuất bảng (.csv)</button>
+            <button id="btnSplitChapters">📑 Tách theo chương</button>
+          </div>
+        </details>
+
+        <details style="margin-top:12px">
+          <summary><strong>🛠️ Công cụ chuyên biệt</strong></summary>
+          <div class="row" style="margin-top:10px;gap:8px">
+            <button id="btnFootnote">🔗 URL → Footnote</button>
+            <button id="btnNormalizeTables">📊 Chuẩn hoá bảng</button>
+            <button id="btnKeepVI">🇻🇳 Chỉ giữ tiếng Việt</button>
+            <button id="btnRmPageNo">🔢 Xóa số trang</button>
+            <button id="btnRmHeaderFooter">📄 Xóa header/footer</button>
+            <button id="btnRmWatermark">💧 Xóa watermark</button>
+          </div>
+        </details>
+
+        <details style="margin-top:12px">
+          <summary><strong>💾 Snapshot & Debug</strong></summary>
+          <div class="row" style="margin-top:10px;gap:8px">
+            <button id="btnSaveSnap">💾 Lưu snapshot</button>
+            <button id="btnDiffSnap">🔄 So sánh snapshot</button>
+            <button id="btnRunTests">🧪 Chạy test</button>
+          </div>
+        </details>
+        <div id="out" class="out" hidden></div>
+        <div class="footer">Heuristic sạch nhanh, không hoàn hảo 100% cho mọi tài liệu học thuật phức tạp. Có thể chạy lại nhiều lần.</div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:14px">
+      <details>
+        <summary><strong>Mẹo & Regex hay dùng (mở ra để xem)</strong></summary>
+        <p class="muted">• Thay “. ” → “. ^p” trong Word để xuống dòng theo câu. • Xóa hyperlink: chọn tất cả → <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F9</kbd>. • Tìm dòng rỗng kép: tìm "\n\n+" → thay bằng "\n\n". • TCVN3/VNI → Unicode nên dùng Unikey Toolkit.</p>
+      </details>
+    </section>
+
+    <div class="footer muted" style="text-align:center;margin:20px 0">© PasteCleaner — by D | Local‑only, không gửi dữ liệu đi đâu cả.</div>
+  </div>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+    const input = $('#input');
+    const preview = $('#preview');
+    const statsTop = $('#statsTop');
+    const out = $('#out');
+    const dropzone = $('#dropzone');
+
+    let historyStack = [];
+    let snapshot = null; // for diff
+    let lastKWCounts = null; // cache last keyword counts for export
+
+    // ====== Perf-safe stats ======
+    let statsRaf = null;
+    function updateStats(txt){
+      const fn = ()=>{
+        const chars = txt.length;
+        const words = (txt.match(/\S+/g)||[]).length;
+        const lines = (txt.split(/\n/)).length;
+        statsTop.innerHTML = `<span class="pill">${chars.toLocaleString('vi-VN')} ký tự</span>`+
+                             `<span class="pill">${words.toLocaleString('vi-VN')} từ</span>`+
+                             `<span class="pill">${lines.toLocaleString('vi-VN')} dòng</span>`;
+        statsRaf=null;
+      };
+      if(!statsRaf){ statsRaf = requestAnimationFrame(fn); }
+    }
+
+    function pushHistory(){ historyStack.push(input.value); if(historyStack.length>100) historyStack.shift(); }
+
+    // ====== Abbreviations for sentence split ======
+    const ABBRS = new Set(['tp','ts','ths','th.s','pgs','gs','pgs.ts','mr','mrs','dr','prof','vs','vd','v.d','v.v','e.g','i.e','etc','no','st','bt','q','tp.hcm','hn']);
+
+    // ====== Clean helpers ======
+    function stripHTML(html){
+      html = html.replace(/<\s*br\s*\/?\s*>/gi, '\n').replace(/<\s*p\s*>/gi,'').replace(/<\s*\/p\s*>/gi,'\n');
+      try{
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        return (doc.body && doc.body.textContent) ? doc.body.textContent : html.replace(/<[^>]*>/g,'');
+      }catch{
+        return html.replace(/<[^>]*>/g,'');
+      }
+    }
+    function normalizeNbsp(t){ return t.replace(/\u00A0|&nbsp;/g,' '); }
+    function removeControlChars(t){ return t.replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,'').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,''); }
+    function smartToStraight(t){ return t.replace(/[“”«»]/g,'"').replace(/[‘’‚‛]/g,"'").replace(/[–—]/g,'-').replace(/…/g,'...'); }
+    function trimSpaces(t){ return t.replace(/[\t ]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').replace(/^ +| +$/gm,'').trim(); }
+    function fixPdfLinebreaks(t){
+      return t.replace(/([^.!?;:\-])\n(?!(\n|\s*[\-•◦·*]|\s*\d+\.|\s*\([a-z]\)\s))/g, '$1 ');
+    }
+    function mergeHyphenBreaks(t){
+      return t.replace(/([\p{L}0-9])-[\t ]*\n([\p{Ll}0-9])/gu,'$1$2');
+    }
+    function removeAllBreaks(t){ return t.replace(/\r\n?/g,'\n').replace(/\n(?!\n)/g,' '); }
+    function normalizeBullets(t){ return t
+      .replace(/^\s*[•◦·*]\s*/gm,'- ')
+      .replace(/^(\s*)[–—-]\s*/gm,'$1- ')
+      .replace(/^(\s*)\d+\)\s*/gm,'$1- ')
+      .replace(/^(\s*)([a-z])\)\s+/gmi,'$1- ');
+    }
+    function unwrapLongUrls(t){ return t.replace(/(https?:\/\/\S+)\n(?=\S)/g,'$1'); }
+    function splitSentencesToNewlines(t){
+      return t.replace(/([.!?…]+)\s+(?=\p{L}|\d)/gu,(m,punct,offset,str)=>{
+        const back = str.slice(0, offset).split(/\s+/).pop()||'';
+        const word = back.replace(/[^\p{L}\d\.]/gu,'').toLowerCase();
+        if(ABBRS.has(word) || /\b\d+\.(\d+)+$/.test(back)) return m;
+        return (punct + '\n');
+      });
+    }
+    const toUpper = (t)=>t.toLocaleUpperCase('vi-VN');
+    const toLower = (t)=>t.toLocaleLowerCase('vi-VN');
+    function sentenceCase(t){
+      return t.replace(/(^|[\n\r]\s*)([^\n\r]+)/g, (m, start, line)=> start + line.replace(/^(\s*[\p{L}])(.*)$/u,(m,a,b)=>a.toLocaleUpperCase('vi-VN')+b));
+    }
+
+    // ====== TABLE NORMALIZATION ======
+    function isMdSeparatorLine(s){ return /^\s*\|?\s*:?-{3,}\s*(\|\s*:?-{3,}\s*)+\|?\s*$/.test(s); }
+    function longSpaceGaps(line){ const gaps=[]; let i=0; while(i<line.length){ if(line[i]===' '){ let j=i; while(j<line.length && line[j]===' ') j++; if(j-i>=3) gaps.push({start:i,end:j}); i=j; } else i++; } return gaps; }
+    function detectTableBlocks(lines){
+      const blocks=[]; let i=0; const isCand = s => ((/\|.*\|/.test(s) || s.includes('\t') || /\s{3,}/.test(s)) && s.trim()!=='');
+      while(i<lines.length){
+        if(!isCand(lines[i])){ i++; continue; }
+        const start=i; const raw=[];
+        while(i<lines.length && isCand(lines[i])){ if(!isMdSeparatorLine(lines[i])) raw.push(lines[i]); i++; }
+        const end=i; if(raw.length<2) continue;
+        const hasTab = raw.some(s=>s.includes('\t'));
+        const hasPipe= raw.some(s=>/\|.*\|/.test(s));
+        if(hasTab || hasPipe){
+          const rows = raw.map(ln=>{ const cells = hasTab? ln.split('\t') : ln.split('|').slice(1,-1); return cells.map(c=>c.replace(/\s+/g,' ').trim()); });
+          if(rows.every(r=>r.length>=2)) { blocks.push({start,end,rows}); continue; }
+        }
+        const buckets=[];
+        raw.forEach(ln=>{ longSpaceGaps(ln).forEach((g,idx)=>{ (buckets[idx] ||= []).push(g.start); }); });
+        const minSupport = Math.max(2, Math.round(raw.length*0.6));
+        const active = buckets.filter(arr=>arr.length>=minSupport);
+        if(active.length===0){ continue; }
+        const bounds = active.map(arr=>{ const xs = arr.slice().sort((a,b)=>a-b); return xs[Math.floor(xs.length/2)]; });
+        const rows = raw.map(ln=>{
+          const cells=[]; let prev=0; for(const b of bounds){ cells.push( ln.slice(prev,b).trim().replace(/\s+/g,' ') ); let k=b; while(k<ln.length && ln[k]===' ') k++; prev=k; } cells.push( ln.slice(prev).trim().replace(/\s+/g,' ') ); return cells;
+        });
+        const cols = rows.map(r=>r.length).sort((a,b)=>a-b); const mode = cols[Math.floor(cols.length/2)];
+        const fixed = rows.map(r=>{ if(r.length===mode) return r; if(r.length>mode){ const head=r.slice(0,mode-1); head.push(r.slice(mode-1).join(' ')); return head; } return r.concat(Array(mode-r.length).fill('')); });
+        blocks.push({start,end,rows:fixed});
+      }
+      return blocks;
+    }
+    function normalizeTables(text){
+      const lines = text.split('\n');
+      const blocks = detectTableBlocks(lines);
+      if(!blocks.length) return text;
+      const out=[]; let bi=0; for(let i=0;i<lines.length;){ const b=blocks[bi]; if(b && i===b.start){ out.push( b.rows.map(r=>r.join('\t')).join('\n') ); i=b.end; bi++; } else { out.push(lines[i]); i++; } }
+      return out.join('\n');
+    }
+
+    function exportTablesCSV(){
+      const text = normalizeTables(input.value);
+      const lines = text.split('\n');
+      let blocks=[]; let start=null;
+      for(let i=0;i<lines.length;i++){
+        const isRow = /\t/.test(lines[i].trim());
+        if(isRow && start===null){ start=i; }
+        else if(!isRow && start!==null){ blocks.push([start, i]); start=null; }
+      }
+      if(start!==null) blocks.push([start, lines.length]);
+      if(!blocks.length){ toast('Không tìm thấy bảng tab‑delimited để xuất', true); return; }
+
+      let count=0;
+      blocks.forEach((range, idx)=>{
+        const [s,e] = range; const rows = lines.slice(s,e).map(l=>l.split('\t'));
+        if(rows.length<2 || rows.every(r=>r.length<2)) return;
+        const csv = rows.map(r=> r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+        const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download = `table_${String(idx+1).padStart(2,'0')}.csv`; a.click(); URL.revokeObjectURL(a.href); count++;
+      });
+      toast(count? `Đã xuất ${count} bảng CSV ✅` : 'Không có bảng hợp lệ để xuất', !count);
+    }
+
+    // ====== ADVANCED / REPORTING ======
+    function convertUrlsToFootnotes(){
+      pushHistory();
+      let t = input.value;
+      const urlRe = /(https?:\/\/[^\s\]]+)/g; const urls = [];
+      t = t.replace(urlRe,(m)=>{ let idx = urls.indexOf(m); if(idx===-1){ urls.push(m); idx = urls.length-1; } return `[${idx+1}]`; });
+      if(urls.length){ const ref=['','\n\nTài liệu tham khảo:']; urls.forEach((u,i)=>ref.push(`[${i+1}] ${u}`)); t = t.replace(/\n*$/,'') + ref.join('\n'); input.value=t; updateStats(t); toast(`Đã tạo ${urls.length} footnote từ URL ✅`); } else { toast('Không tìm thấy URL để chuyển thành footnote', true); }
+    }
+    function checkSubmissionRules(){
+      const issues = [];
+      const txt = input.value;
+      issues.push('Font: Thiết lập trong Word → Times New Roman');
+      issues.push('Cỡ chữ: Thiết lập trong Word → 12pt');
+      issues.push('Giãn dòng: Thiết lập trong Word → 1.5');
+      issues.push('Lề trang: Thiết lập trong Word → 3-2-2-2 cm (trái-trên-phải-dưới)');
+      if(/\s[\.,;:!?]/.test(txt)) issues.push('Có khoảng trắng trước dấu câu (, . ; : ! ?)');
+      if(/\.[\s]*\./.test(txt)) issues.push('Phát hiện dấu chấm kép ".."');
+      if(/\n{3,}/.test(txt)) issues.push('Có nhiều dòng trống liên tiếp (>2)');
+      const badStart = (txt.match(/(?:^|\n)\s*[a-zà-ỹ]/g)||[]).length; if(badStart>0) issues.push(`Có ${badStart} dòng không viết hoa đầu câu`);
+      if(/\bCHƯƠNG\s*\d+/i.test(txt)===false && /\b\d+\.(\d+)/.test(txt)===false) issues.push('Không phát hiện tiêu đề chương/mục (CHƯƠNG x, 1.1, 2.2.1)');
+      out.hidden = false; out.innerHTML = `<b>Kết quả kiểm tra chuẩn nộp</b>\n- ` + issues.join('\n- ');
+    }
+    function quickReport(){
+      const t = input.value;
+      const words = (t.match(/\S+/g)||[]).length;
+      const lines = t.split(/\n/).length;
+      const paras = (t.match(/\n\n/g)||[]).length + 1;
+      const sentences = (t.match(/[.!?…]+\s/g)||[]).length;
+      const urls = (t.match(/https?:\/\/[^\s\]]+/g)||[]).length;
+      const refs = (t.match(/\[[0-9]+\]/g)||[]).length;
+      const figures = (t.match(/\b(Hình|Figure)\s*\d+/gi)||[]).length;
+      const tables = (t.match(/\b(Bảng|Table)\s*\d+/gi)||[]).length;
+      out.hidden=false; out.innerHTML = `<b>Báo cáo nhanh</b>\n`+
+        `Từ: ${words.toLocaleString('vi-VN')}\n`+
+        `Dòng: ${lines.toLocaleString('vi-VN')} | Đoạn: ${paras.toLocaleString('vi-VN')} | Câu: ${sentences.toLocaleString('vi-VN')}\n`+
+        `URL: ${urls} | Tham chiếu [n]: ${refs}\n`+
+        `Hình: ${figures} | Bảng: ${tables}`;
+    }
+
+    // ====== Keyword utilities ======
+    const STOP_VI = new Set(['và','hoặc','của','là','trong','theo','với','cho','từ','những','các','một','mỗi','được','bằng','đến','khi','này','kia','đó','thì','rằng','vì','do','để','trên','dưới','giữa','năm','tháng','ngày','không','có','cũng','như','vào','ra','lại','nếu','đã','sẽ','đang','rất','hơn','ít','nhiều','nơi','v.v','vd','ví','dụ']);
+    const STOP_EN = new Set(['the','a','an','and','or','of','to','in','for','on','by','with','from','as','is','are','was','were','be','been','being','at','this','that','these','those','it','its','we','you','they','our','their','your']);
+
+    function tokenizeVI(text){
+      const tokens = (text.toLowerCase().match(/[\p{L}][\p{L}\-]+/gu) || []);
+      return tokens;
+    }
+    function extractKeywords(text, {top=30, minLen=2, includeBigrams=true}={}){
+      const toks = tokenizeVI(text);
+      const uni = new Map();
+      for(const t of toks){ if(t.length<minLen) continue; if(STOP_VI.has(t)||STOP_EN.has(t)) continue; uni.set(t,(uni.get(t)||0)+1); }
+      const entries = Array.from(uni.entries());
+
+      // bigrams (phrase of 2 tokens) ignoring stopwords at edges
+      const bi = new Map();
+      if(includeBigrams){
+        for(let i=0;i<toks.length-1;i++){
+          const a=toks[i], b=toks[i+1];
+          if(a.length<minLen||b.length<minLen) continue;
+          if(STOP_VI.has(a)||STOP_EN.has(a)) continue;
+          if(STOP_VI.has(b)||STOP_EN.has(b)) continue;
+          const key = a+" "+b;
+          bi.set(key,(bi.get(key)||0)+1);
+        }
+      }
+      const biArr = Array.from(bi.entries()).filter(([,n])=>n>=2); // keep meaningful phrases
+
+      // score: prefer bigrams a bit
+      const scored = entries.map(([k,n])=>({k,n,score:n}))
+        .concat(biArr.map(([k,n])=>({k,n,score:n*1.5})));
+      scored.sort((a,b)=> b.score - a.score || b.n - a.n);
+      return scored.slice(0, top).map(x=>({k:x.k,n:x.n}));
+    }
+
+    function renderKeywordTable(counts){
+      if(!counts||!counts.length){ out.hidden=false; out.innerHTML='<b>Thống kê từ khóa</b>\n(Trống)'; return; }
+      const rows = counts.map((r,i)=>`<tr><td>${i+1}</td><td>${r.k}</td><td>${r.n}</td></tr>`).join('');
+      out.hidden=false;
+      out.innerHTML = '<b>Thống kê từ khóa (Auto)</b>'+
+        '<table class="kw"><thead><tr><th>#</th><th>Từ khóa</th><th>Số lần</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    }
+
+    // existing counter based on manual list
+    function computeKeywordCounts(text, kwList){
+      const t = String(text||'').toLowerCase();
+      const out = [];
+      kwList.forEach(raw=>{
+        const k = String(raw||'').trim().toLowerCase();
+        if(!k) return;
+        const esc = k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        const re = new RegExp(`(?<![\\u00C0-\\u1EF9\\w])${esc}(?![\\u00C0-\\u1EF9\\w])`,'g');
+        out.push({ k, n: (t.match(re)||[]).length });
+      });
+      out.sort((a,b)=>b.n-a.n);
+      return out;
+    }
+
+    function keywordStats(){
+      const kw = ($('#keywords').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+      if(!kw.length){ toast('Nhập ít nhất 1 từ khóa, hoặc bấm Trích xuất tự động', true); return; }
+      const res = computeKeywordCounts(input.value, kw);
+      lastKWCounts = res;
+      renderKeywordTable(res);
+    }
+
+    function autoKeywords(){
+      const counts = extractKeywords(input.value, {top:30});
+      // fill the keyword input
+      $('#keywords').value = counts.map(x=>x.k).join(', ');
+      lastKWCounts = counts;
+      renderKeywordTable(counts);
+      toast('Đã trích xuất từ khóa tự động ✅');
+    }
+
+    function exportKeywordStatsRTF(){
+      const counts = lastKWCounts || extractKeywords(input.value, {top:30});
+      const esc = (s)=> String(s).replace(/\\/g,'\\\\').replace(/\{/g,'\\{').replace(/\}/g,'\\}');
+      let body = '';
+      body += esc('Thống kê từ khóa') + '\\par';
+      body += esc('— Nguồn: PasteCleaner —') + '\\par\\par';
+      body += esc('Từ khóa') + '\\tab ' + esc('Số lần') + '\\par';
+      body += '——————————\\tab —————\\par';
+      counts.forEach(r=>{ body += esc(r.k) + '\\tab ' + r.n + '\\par'; });
+      const rtf = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}}\\fs26\\f0 ${body}}`;
+      const blob = new Blob([rtf], {type:'application/rtf'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'keyword_stats.rtf'; a.click(); URL.revokeObjectURL(a.href);
+      toast('Đã xuất RTF (Times New Roman, cỡ 13) ✅');
+    }
+
+    function exportKeywordStatsCSV(){
+      const counts = lastKWCounts || extractKeywords(input.value, {top:30});
+      const header = 'keyword,count\n';
+      const body = counts.map(r=>`"${String(r.k).replace(/"/g,'""')}",${r.n}`).join('\n');
+      const blob = new Blob([header+body], {type:'text/csv;charset=utf-8'});
+      const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='keyword_stats.csv'; a.click(); URL.revokeObjectURL(a.href);
+      toast('Đã xuất CSV ✅');
+    }
+
+    function langRatio(){
+      const words = (input.value.match(/\S+/g)||[]);
+      let vi=0,en=0,other=0; const hasVN = /[\u00C0-\u1EF9]/;
+      for(const w of words){ if(hasVN.test(w)) vi++; else if(/[A-Za-z]/.test(w)) en++; else other++; }
+      const total = vi+en || 1; const pvi = Math.round(vi/total*100), pen = Math.round(en/total*100);
+      out.hidden=false; out.innerHTML = `<b>Tỷ lệ từ tiếng Việt – tiếng Anh</b>\nViệt: ${pvi}% (${vi}) | Anh: ${pen}% (${en})` + (other? `\nKhác/ký hiệu: ${other}`:'');
+    }
+    function splitChapters(){
+      const t = input.value; const lines = t.split('\n'); const indices=[];
+      const titleRegexA = /^\s*(CHƯƠNG\s+\d+\b.*)/i; const titleRegexB = /^\s*(\d+(?:\.\d+){0,2})\s+.+/;
+      lines.forEach((ln,i)=>{ if(titleRegexA.test(ln)||titleRegexB.test(ln)) indices.push(i); });
+      if(indices.length===0){ toast('Không phát hiện tiêu đề chương/mục để tách', true); return; }
+      indices.push(lines.length);
+      const base = 'chapter_'; let files=[];
+      for(let j=0;j<indices.length-1;j++){
+        const start = indices[j], end = indices[j+1];
+        const content = lines.slice(start,end).join('\n').trim();
+        const title = (lines[start].trim().replace(/[^\p{L}\d\.\s-]/gu,'').substring(0,60) || `Chuong_${j+1}`).replace(/\s+/g,'_');
+        const fname = `${base}${(j+1).toString().padStart(2,'0')}_${title}.txt`;
+        const blob = new Blob([content],{type:'text/plain;charset=utf-8'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname; a.click(); URL.revokeObjectURL(a.href);
+        files.push(fname);
+      }
+      out.hidden=false; out.innerHTML = `<b>Đã tách chương/mục</b>\n`+files.map(f=>`- ${f}`).join('\n');
+    }
+    function keepVietnameseOnly(){
+      pushHistory(); const lines = input.value.split('\n'); const hasVN = /[\u00C0-\u1EF9]/;
+      const kept = lines.filter(ln=>{ if(!ln.trim()) return true; if(hasVN.test(ln)) return true; const letters = (ln.match(/[A-Za-z]/g)||[]).length; const all = (ln.match(/\S/g)||[]).length || 1; const ratio = letters/all; return ratio < 0.6; });
+      input.value = kept.join('\n'); updateStats(input.value); toast('Đã lọc: Chỉ giữ tiếng Việt (ước lượng) ✅');
+    }
+    function removePageNumbers(){
+      pushHistory(); let t = input.value;
+      t = t.replace(/^\s*(?:Page|Trang)\s*\d+\s*$/gim,'');
+      t = t.replace(/^\s*[—-]*\s*(?:Page|Trang)\s*\d+\s*[—-]*\s*$/gim,'');
+      input.value = t.replace(/\n{3,}/g,'\n\n'); updateStats(input.value); toast('Đã xóa số trang PDF ✅');
+    }
+    function removeHeaderFooter(){
+      pushHistory(); let lines = input.value.split('\n');
+      const hint = ($('#headerLines').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+      if(hint.length){ lines = lines.filter(ln=>!hint.some(h=>ln.includes(h))); }
+      else {
+        const freq = new Map();
+        for(const ln of lines){ const k = ln.trim(); if(!k) continue; if(k.length>0 && k.length<=80){ freq.set(k,(freq.get(k)||0)+1); } }
+        const repeated = Array.from(freq.entries()).filter(([k,v])=>v>=3).map(([k])=>k);
+        if(repeated.length){ lines = lines.filter(ln=>!repeated.includes(ln.trim())); }
+      }
+      input.value = lines.join('\n').replace(/\n{3,}/g,'\n\n'); updateStats(input.value); toast('Đã xóa header/footer lặp ✅');
+    }
+    function removeWatermark(){
+      pushHistory();
+      const lines = input.value.split('\n');
+      const freq = new Map();
+      lines.forEach(ln=>{ const k = ln.trim(); if(!k) return; if(k.length<=60) freq.set(k,(freq.get(k)||0)+1); });
+      const suspects = Array.from(freq.entries()).filter(([k,v])=> v>=5 || (/^[A-Z0-9 \-_.]{6,60}$/.test(k) && v>=3)).map(([k])=>k);
+      const filtered = lines.filter(ln=>!suspects.includes(ln.trim()));
+      input.value = filtered.join('\n'); updateStats(input.value); toast(suspects.length? 'Đã xoá watermark/lặp mẫu ✅':'Không phát hiện watermark lặp', !suspects.length);
+    }
+
+    function saveSnapshot(){ snapshot = { text: input.value, time: new Date() }; toast('Đã lưu snapshot hiện tại ✅'); }
+    function diffWithSnapshot(){
+      if(!snapshot){ toast('Chưa có snapshot để so sánh', true); return; }
+      const a = snapshot.text.split('\n'); const b = input.value.split('\n');
+      const removed = a.filter(x=>!b.includes(x)); const added = b.filter(x=>!a.includes(x));
+      out.hidden=false; out.innerHTML = `<b>So sánh với snapshot (${snapshot.time.toLocaleString('vi-VN')})</b>\n`+
+        `+ Dòng mới: ${added.length}\n- Dòng bị xoá: ${removed.length}\n`+
+        (added.length? `\n<b>Dòng thêm (top 20):</b>\n+ `+added.slice(0,20).join('\n+ ') : '')+
+        (removed.length? `\n\n<b>Dòng xoá (top 20):</b>\n- `+removed.slice(0,20).join('\n- ') : '');
+    }
+
+    // ====== CLEAN PIPELINE ======
+    function clean(){
+      pushHistory();
+      let t = input.value; updateStats(t);
+      if($('#optStripHtml').checked){ t = stripHTML(t); }
+      if($('#optNbsp').checked){ t = normalizeNbsp(t); }
+      if($('#optRmCtl').checked){ t = removeControlChars(t); }
+      if($('#optSmartQuotes').checked){ t = smartToStraight(t); }
+      if($('#optFixLinebreaks').checked){ t = fixPdfLinebreaks(t); }
+      if($('#optHyphen').checked){ t = mergeHyphenBreaks(t); }
+      if($('#optUnwrapUrls').checked){ t = unwrapLongUrls(t); }
+      if($('#optRemoveBreaks').checked){ t = removeAllBreaks(t); }
+      if($('#optBullets').checked){ t = normalizeBullets(t); }
+      if($('#optNormalizeTables').checked){ t = normalizeTables(t); }
+      if($('#optSplitSent').checked){ t = splitSentencesToNewlines(t); }
+      if($('#optTrimSpaces').checked){ t = trimSpaces(t); }
+      input.value = t; updateStats(t); return t;
+    }
+    function showPreview(){ const t = clean(); preview.textContent = t; preview.hidden = false; }
+
+    // ====== Tiny Test Harness ======
+    function runSelfTests(){
+      const results = [];
+      const assert = (name, cond)=> results.push({name, pass: !!cond});
+      const s1 = stripHTML('<p>A<br>B</p>');
+      assert('stripHTML: keeps line breaks', /A\nB/.test(s1));
+      assert('trimSpaces: collapse spaces', trimSpaces('a   b')==='a b');
+      assert('fixPdfLinebreaks: join non-list', fixPdfLinebreaks('ABC\nxyz').includes('ABC xyz'));
+      assert('mergeHyphenBreaks: join hyphen word', mergeHyphenBreaks('công-\nnghệ').includes('côngnghệ'));
+      const kc = computeKeywordCounts('AI AI ai, ITS; its.', ['ai','its']);
+      const okAI = kc.find(x=>x.k==='ai')?.n===3; const okITS = kc.find(x=>x.k==='its')?.n===2;
+      assert('computeKeywordCounts: AI x3', okAI);
+      assert('computeKeywordCounts: ITS x2', okITS);
+      const ak = extractKeywords('hệ thống giao thông thông minh ứng dụng iot trong giao thông đô thị; iot giao thông', {top:5});
+      const hasIot = ak.some(x=>x.k.includes('iot'));
+      assert('extractKeywords: finds IoT', hasIot);
+
+      const passed = results.filter(r=>r.pass).length;
+      out.hidden=false; out.innerHTML = '<b>Kết quả tự kiểm thử</b>\n'+results.map(r=>`${r.pass?'✅':'❌'} ${r.name}`).join('\n');
+      toast(`Tests: ${passed}/${results.length} passed` , passed!==results.length);
+    }
+
+    // ====== Buttons ======
+    $('#btnClean').addEventListener('click', clean);
+    $('#btnShowPreview').addEventListener('click', showPreview);
+    $('#btnCopy').addEventListener('click', async ()=>{ const t = clean(); try{ await navigator.clipboard.writeText(t); toast('Đã copy nội dung sạch ✅'); } catch{ toast('Copy thất bại: trình duyệt chặn.', true); } });
+    $('#btnDownload').addEventListener('click', ()=>{ const t = clean(); const blob = new Blob([t],{type:'text/plain;charset=utf-8'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cleaned.txt'; a.click(); URL.revokeObjectURL(a.href); });
+    $('#btnClear').addEventListener('click', ()=>{ input.value=''; updateStats(''); preview.hidden=true; out.hidden=true; out.textContent=''; });
+    $('#btnUndo').addEventListener('click', ()=>{ if(historyStack.length>0){ input.value = historyStack.pop(); updateStats(input.value); } else { toast('Không có thao tác trước đó', true); } });
+    $('#btnLoadFile').addEventListener('click', ()=>$('#filePicker').click());
+    $('#filePicker').addEventListener('change', (e)=>{ const f=e.target.files?.[0]; if(!f) return; const reader=new FileReader(); reader.onload=()=>{ input.value=String(reader.result||''); updateStats(input.value); toast('Đã nạp file ✅'); }; reader.readAsText(f); });
+
+    $('#btnLower').addEventListener('click', ()=>{ pushHistory(); input.value = toLower(input.value); updateStats(input.value); });
+    $('#btnUpper').addEventListener('click', ()=>{ pushHistory(); input.value = toUpper(input.value); updateStats(input.value); });
+    $('#btnSentence').addEventListener('click', ()=>{ pushHistory(); input.value = sentenceCase(input.value); updateStats(input.value); });
+
+    $('#btnFootnote').addEventListener('click', convertUrlsToFootnotes);
+    $('#btnCheckRules').addEventListener('click', checkSubmissionRules);
+    $('#btnQuickReport').addEventListener('click', quickReport);
+    $('#btnKeywordStats').addEventListener('click', keywordStats);
+    $('#btnAutoKeywords').addEventListener('click', autoKeywords);
+    $('#btnExportKWRTF').addEventListener('click', exportKeywordStatsRTF);
+    $('#btnExportKWCSV').addEventListener('click', exportKeywordStatsCSV);
+    $('#btnLangRatio').addEventListener('click', langRatio);
+    $('#btnRunTests').addEventListener('click', runSelfTests);
+    $('#btnSplitChapters').addEventListener('click', splitChapters);
+    $('#btnKeepVI').addEventListener('click', keepVietnameseOnly);
+    $('#btnRmPageNo').addEventListener('click', removePageNumbers);
+    $('#btnRmHeaderFooter').addEventListener('click', removeHeaderFooter);
+    $('#btnSaveSnap').addEventListener('click', saveSnapshot);
+    $('#btnDiffSnap').addEventListener('click', diffWithSnapshot);
+    $('#btnNormalizeTables').addEventListener('click', ()=>{ input.value = normalizeTables(input.value); updateStats(input.value); toast('Đã chuẩn hoá bảng (tab‑delimited) ✅'); });
+    $('#btnExportTablesCSV').addEventListener('click', exportTablesCSV);
+    $('#btnRmWatermark').addEventListener('click', removeWatermark);
+
+    input.addEventListener('input', ()=>updateStats(input.value));
+
+    // ====== Keyboard shortcuts ======
+    document.addEventListener('keydown', (e)=>{
+      // Ctrl+Enter: Clean
+      if(e.ctrlKey && e.key === 'Enter'){ e.preventDefault(); clean(); toast('Đã làm sạch ✅'); }
+      // Ctrl+S: Download
+      if(e.ctrlKey && e.key === 's'){ e.preventDefault(); const t = clean(); const blob = new Blob([t],{type:'text/plain;charset=utf-8'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cleaned.txt'; a.click(); URL.revokeObjectURL(a.href); toast('Đã tải file ✅'); }
+      // Ctrl+Z in input: Undo (only when input is focused and history exists)
+      if(e.ctrlKey && e.key === 'z' && document.activeElement === input && historyStack.length>0){ e.preventDefault(); input.value = historyStack.pop(); updateStats(input.value); toast('Đã hoàn tác ⏪'); }
+    });
+
+    // ====== Paste auto-clean ======
+    input.addEventListener('paste', (ev)=>{
+      if(!$('#optAutoPaste').checked) return;
+      const dt = ev.clipboardData; if(!dt) return;
+      const html = dt.getData('text/html');
+      const text = dt.getData('text/plain');
+      if(html){ ev.preventDefault(); input.value += stripHTML(html); } else if(text){ }
+      setTimeout(()=>{ clean(); }, 0);
+    });
+
+    // ====== Drag & drop loader ======
+    ;['dragenter','dragover'].forEach(evt=>{
+      dropzone.addEventListener(evt, e=>{ e.preventDefault(); dropzone.style.borderColor = '#38bdf8'; });
+    });
+    ;['dragleave','drop'].forEach(evt=>{
+      dropzone.addEventListener(evt, e=>{ e.preventDefault(); dropzone.style.borderColor = '#2b3a5a'; });
+    });
+    dropzone.addEventListener('drop', (e)=>{
+      const f = e.dataTransfer?.files?.[0]; if(!f) return; const reader=new FileReader(); reader.onload=()=>{ input.value=String(reader.result||''); updateStats(input.value); toast('Đã nạp file (drag‑drop) ✅'); }; reader.readAsText(f);
+    });
+
+    // init
+    updateStats('');
+
+    function toast(msg, isErr=false){
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:24px;padding:12px 18px;border-radius:10px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);font-size:14px';
+      t.style.background = isErr? '#ef4444' : '#22c55e';
+      t.style.color = '#0b1220';
+      t.classList.add('fade-in');
+      document.body.appendChild(t);
+      setTimeout(()=>{
+        t.style.transition = 'opacity 0.3s, transform 0.3s';
+        t.style.opacity = '0';
+        t.style.transform = 'translateX(-50%) translateY(10px)';
+        setTimeout(()=>t.remove(), 300);
+      }, 1800);
+    }
+  </script>
+</body>
+</html>
